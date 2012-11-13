@@ -49,6 +49,44 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Add the above function as a check constraint on the quilt_polys table.
+-- Function that evaluates a polygon in the quilt_polys to make sure it fits
+-- inside its quilt boundaries. All quilts start at (0,0) and extend to
+-- (width, height) from their row in the quilts table.
+CREATE OR REPLACE FUNCTION check_polygon_inside_quilt
+    (_quilt_id INTEGER, _poly geometry(POLYGON))
+RETURNS BOOLEAN AS $$
+DECLARE
+    result BOOLEAN;
+BEGIN
+    SELECT ST_Contains(
+        -- make containing polygon from quilt dimensions...
+        ST_MakeBox2D(ST_Point(0,0), ST_Point(width, height)),
+        -- ... that contains our poly
+        _poly)
+    INTO result
+    FROM quilts WHERE quilt_id = _quilt_id;
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add the above functions as check constraints on the quilt_polys table.
 ALTER TABLE quilt_polys ADD CONSTRAINT no_overlapping_polys CHECK
     (check_no_overlapping_polys(quilt_poly_id, quilt_id, poly));
+ALTER TABLE quilt_polys ADD CONSTRAINT poly_inside_quilt CHECK
+    (check_polygon_inside_quilt(quilt_id, poly));
+
+-- In addition to checking the insertion of polygons, we need a trigger to
+-- make sure if a quilt's dimensions shrink, any polygons that are now outside
+-- of the quilt are removed.
+CREATE OR REPLACE FUNCTION remove_outside_polys()
+RETURNS trigger AS $$
+BEGIN
+    DELETE FROM quilt_polys WHERE quilt_id = NEW.quilt_id AND
+        NOT ST_Contains(
+            ST_MakeBox2D(ST_Point(0,0), ST_Point(NEW.width, NEW.height)),
+            poly);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER remove_outside_polys BEFORE UPDATE OF width, height ON quilts
+    FOR EACH ROW EXECUTE PROCEDURE remove_outside_polys();
