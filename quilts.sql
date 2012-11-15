@@ -18,17 +18,27 @@ CREATE TABLE quilts (
     UNIQUE (user_id, name)
 );
 
+-- Table for comments users leave on quilts.
+CREATE TABLE quilt_comments (
+    comment_id  SERIAL  PRIMARY KEY,
+    quilt_id    INTEGER NOT NULL REFERENCES quilts(quilt_id),
+    user_id     INTEGER NOT NULL REFERENCES users(user_id),
+    comment     TEXT    NOT NULL,
+    created     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
 -- Table for quilt polygons.
 CREATE TABLE quilt_polys (
     quilt_poly_id SERIAL  PRIMARY KEY,
     quilt_id      INTEGER NOT NULL REFERENCES quilts(quilt_id),
-    fabric_id     INTEGER NOT NULL REFERENCES fabrics DEFAULT fabric_color('ffffff'),
+    fabric_id     INTEGER NOT NULL REFERENCES fabrics(fabric_id)
+                      DEFAULT fabric_color('ffffff'),
     poly          geometry(POLYGON) NOT NULL
 );
 
 -- Function that evaluates the quilt_polys table for a particular quilt
 -- to make sure there are no overlapping polygons in that quilt.
-CREATE OR REPLACE FUNCTION check_no_overlapping_polys(
+CREATE OR REPLACE FUNCTION quilt_no_overlapping_polys(
     _quilt_poly_id INTEGER, _quilt_id INTEGER, _poly geometry(POLYGON))
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -52,7 +62,7 @@ $$ LANGUAGE plpgsql;
 -- Function that evaluates a polygon in the quilt_polys to make sure it fits
 -- inside its quilt boundaries. All quilts start at (0,0) and extend to
 -- (width, height) from their row in the quilts table.
-CREATE OR REPLACE FUNCTION check_polygon_inside_quilt
+CREATE OR REPLACE FUNCTION polygon_inside_quilt
     (_quilt_id INTEGER, _poly geometry(POLYGON))
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -71,9 +81,9 @@ $$ LANGUAGE plpgsql;
 
 -- Add the above functions as check constraints on the quilt_polys table.
 ALTER TABLE quilt_polys ADD CONSTRAINT no_overlapping_polys CHECK
-    (check_no_overlapping_polys(quilt_poly_id, quilt_id, poly));
+    (quilt_no_overlapping_polys(quilt_poly_id, quilt_id, poly));
 ALTER TABLE quilt_polys ADD CONSTRAINT poly_inside_quilt CHECK
-    (check_polygon_inside_quilt(quilt_id, poly));
+    (polygon_inside_quilt(quilt_id, poly));
 
 -- In addition to checking the insertion of polygons, we need a trigger to
 -- make sure if a quilt's dimensions shrink, any polygons that are now outside

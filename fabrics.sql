@@ -18,6 +18,13 @@ CREATE TABLE fabric_colors (
     UNIQUE (color)
 );
 
+-- Mapping of users to fabrics they've added to their palette.
+CREATE TABLE user_fabrics (
+    user_id     INTEGER REFERENCES users(user_id),
+    fabric_id   INTEGER REFERENCES fabrics(fabric_id),
+    PRIMARY KEY (user_id, fabric_id)
+);
+
 -- Helper function to create a colored fabric and its associated entry in
 -- the fabrics table.
 CREATE OR REPLACE FUNCTION fabric_color(_color CHAR(6))
