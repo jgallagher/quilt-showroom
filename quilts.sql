@@ -100,3 +100,29 @@ END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER remove_outside_polys BEFORE UPDATE OF width, height ON quilts
     FOR EACH ROW EXECUTE PROCEDURE remove_outside_polys();
+
+-- Stored procedure to update the last modified timestamp of a quilt.
+CREATE OR REPLACE FUNCTION update_quilt_modified()
+RETURNS trigger AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        UPDATE quilts SET modified = now() WHERE quilt_id = OLD.quilt_id;
+    ELSE
+        UPDATE quilts SET modified = now() WHERE quilt_id = NEW.quilt_id;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Attach triggers to tables to update quilt's last modified time.
+CREATE TRIGGER quilt_update
+    AFTER UPDATE ON quilts
+    FOR EACH ROW
+    WHEN ((OLD.name,OLD.visibility,OLD.width,OLD.height)
+          IS DISTINCT FROM
+          (NEW.name,NEW.visibility,NEW.width,NEW.height))
+    EXECUTE PROCEDURE update_quilt_modified();
+CREATE TRIGGER quilt_poly_update
+    AFTER INSERT OR UPDATE OR DELETE ON quilt_polys
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_quilt_modified();
