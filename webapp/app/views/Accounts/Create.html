@@ -1,0 +1,31 @@
+{{template "header.html"}}
+
+<h1>Create a New Account</h1>
+
+{{if .errors.general}}
+<span class="error">User creation error: {{.errors.general}}</span>
+{{end}}
+
+<form action="/accounts/create" method="POST">
+	<fieldset>
+		<div class="field">
+			<label>Username: <input name="username" value="{{.flash.username}}"/></label>
+			<span class="error">{{.errors.username}}</span>
+		</div>
+		<div class="field">
+			<label>Email: <input name="email" value="{{.flash.email}}"/></label>
+			<span class="error">{{.errors.email}}</span>
+		</div>
+		<div class="field">
+			<label>Password: <input type="password" name="password" value="{{.flash.password}}"/></label>
+			<span class="error">{{.errors.password}}</span>
+		</div>
+		<div class="field">
+			<label>Confirm Password: <input type="password" name="password_confirm" value="{{.flash.password_confirm}}"/></label>
+		</div>
+	</fieldset>
+
+	<input type="submit" class="submit" value="Join"/>
+</form>
+
+{{template "footer.html"}}
