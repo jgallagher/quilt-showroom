@@ -1,10 +1,26 @@
 package controllers
 
-import "github.com/robfig/revel"
-import "log"
+import (
+	"github.com/robfig/revel"
+)
 
 type Accounts struct {
 	*rev.Controller
+}
+
+type RenderUserInfoPlugin struct {
+	rev.EmptyPlugin
+}
+
+func init() {
+	rev.RegisterPlugin(RenderUserInfoPlugin{})
+}
+
+func (p RenderUserInfoPlugin) BeforeRequest(c *rev.Controller) {
+	uname, ok := c.Session["uname"]
+	if ok {
+		c.RenderArgs["uname"] = uname
+	}
 }
 
 func (c Accounts) Login() rev.Result {
@@ -12,7 +28,7 @@ func (c Accounts) Login() rev.Result {
 }
 
 func (c Accounts) HandleLogin(email, password string) rev.Result {
-	id, err := db.Login(email, password)
+	name, err := db.Login(email, password)
 
 	if err != nil {
 		c.Validation.Required(nil)
@@ -21,7 +37,12 @@ func (c Accounts) HandleLogin(email, password string) rev.Result {
 		return c.Redirect(Accounts.Login)
 	}
 
-	log.Printf("logged in as %d", id)
+	c.Session["uname"] = name
+	return c.Redirect(Application.Index)
+}
+
+func (c Accounts) Logout() rev.Result {
+	delete(c.Session, "uname")
 	return c.Redirect(Application.Index)
 }
 
@@ -44,7 +65,7 @@ func (c Accounts) HandleCreate(username, email,
 		return c.Redirect(Accounts.Create)
 	}
 
-	id, err := db.CreateUser(username, email, password)
+	err := db.CreateUser(username, email, password)
 
 	switch err {
 	case nil:
@@ -65,6 +86,6 @@ func (c Accounts) HandleCreate(username, email,
 		return c.Redirect(Accounts.Create)
 	}
 
-	log.Printf("%v %v", id, err)
-	return nil
+	c.Session["uname"] = username
+	return c.Redirect(Application.Index)
 }

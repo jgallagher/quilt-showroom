@@ -6,26 +6,39 @@
 <span class="error">User creation error: {{.errors.general}}</span>
 {{end}}
 
-<form action="/accounts/create" method="POST">
-	<fieldset>
-		<div class="field">
-			<label>Username: <input name="username" value="{{.flash.username}}"/></label>
-			<span class="error">{{.errors.username}}</span>
+<form class="form-horizontal" action="/accounts/create" method="POST">
+	<div class="control-group{{if .errors.username}} error{{end}}">
+		<label class="control-label" for="username">Desired Username</label>
+		<div class="controls">
+			<input type="text" name="username" value="{{.flash.username}}" placeholder="Username"/>
+			<span class="help-inline">{{.errors.username}}</span>
 		</div>
-		<div class="field">
-			<label>Email: <input name="email" value="{{.flash.email}}"/></label>
-			<span class="error">{{.errors.email}}</span>
+	</div>
+	<div class="control-group{{if .errors.email}} error{{end}}">
+		<label class="control-label" for="email">Email</label>
+		<div class="controls">
+			<input type="text" name="email" value="{{.flash.email}}" placeholder="Email Address"/>
+			<span class="help-inline">{{.errors.email}}</span>
 		</div>
-		<div class="field">
-			<label>Password: <input type="password" name="password" value="{{.flash.password}}"/></label>
-			<span class="error">{{.errors.password}}</span>
+	</div>
+	<div class="control-group{{if .errors.password}} error{{end}}">
+		<label class="control-label" for="password">Password</label>
+		<div class="controls">
+			<input type="password" name="password" value="{{.flash.password}}" placeholder="Password"/>
+			<span class="help-inline">{{.errors.password}}</span>
 		</div>
-		<div class="field">
-			<label>Confirm Password: <input type="password" name="password_confirm" value="{{.flash.password_confirm}}"/></label>
+	</div>
+	<div class="control-group{{ if .errors.password}} error{{end}}">
+		<label class="control-label" for="password_confirm">Confirm Password</label>
+		<div class="controls">
+			<input type="password" name="password_confirm" value="{{.flash.password_confirm}}" placeholder="Password (again)"/>
 		</div>
-	</fieldset>
-
-	<input type="submit" class="submit" value="Join"/>
+	</div>
+	<div class="control-group">
+		<div class="controls">
+			<button type="submit" class="btn">Join</button>
+		</div>
+	</div>
 </form>
 
 {{template "footer.html"}}

@@ -2,21 +2,28 @@
 
 <h1>Login</h1>
 
-{{if .errors}}
-<span class="error">Invalid email address or password.</span>
-{{end}}
-
-<form action="/accounts/login" method="POST">
-	<fieldset>
-		<div class="field">
-			<label>Email: <input name="email" value="{{.flash.email}}"/></label>
+<form class="form-horizontal" action="/accounts/login" method="POST">
+	<div class="control-group{{if .errors}} error{{end}}">
+		<label class="control-label" for="email">Email:</label>
+		<div class="controls">
+			<input type="text" name="email" value="{{.flash.email}}" placeholder="Email address"/>
+			{{if .errors}}
+			<span class="help-inline">Invalid email address or password.</span>
+			{{end}}
 		</div>
-		<div class="field">
-			<label>Password: <input type="password" name="password" value="{{.flash.password}}"/></label>
+	</div>
+	<div class="control-group{{if .errors}} error{{end}}">
+		<label class="control-label" for="password">Password:</label>
+		<div class="controls">
+			<input type="password" name="password" value="{{.flash.password}}" placeholder="Password"/>
 		</div>
-	</fieldset>
-
-	<input type="submit" class="submit" value="Login"/>
+	</div>
+	<div class="control-group">
+		<div class="controls">
+			<!--<input type="submit" class="submit" value="Login"/>-->
+			<button type="submit" class="btn">Sign in</button>
+		</div>
+	</div>
 </form>
 
 {{template "footer.html"}}

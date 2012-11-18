@@ -27,7 +27,7 @@ func init() {
 	db = Db{dbh}
 }
 
-func (db Db) CreateUser(name, email, password string) (int64, error) {
+func (db Db) CreateUser(name, email, password string) error {
 	var code string
 	var id sql.NullInt64
 	row := db.QueryRow(`SELECT * FROM users_create($1,$2,$3)`, name, email, password)
@@ -36,32 +36,33 @@ func (db Db) CreateUser(name, email, password string) (int64, error) {
 	}
 	switch code {
 	case "success":
-		return id.Int64, nil
+		return nil
 	case "dup_name":
-		return -1, ErrNameTaken
+		return ErrNameTaken
 	case "dup_email":
-		return -1, ErrEmailTaken
+		return ErrEmailTaken
 	case "bad_name":
-		return -1, ErrBadName
+		return ErrBadName
 	case "bad_pass":
-		return -1, ErrBadPass
+		return ErrBadPass
 	}
 	panic("not reached")
 }
 
-func (db Db) Login(email, password string) (id int64, err error) {
-	rows, err := db.Query(`SELECT user_id FROM users WHERE email = $1 AND password = crypt($2, password)`, email, password)
+func (db Db) Login(email, password string) (name string, err error) {
+	rows, err := db.Query(`SELECT name FROM users WHERE email = $1 AND password = crypt($2, password)`, email, password)
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 
 	if rows.Next() {
-		if err = rows.Scan(&id); err != nil {
+		if err = rows.Scan(&name); err != nil {
 			panic(err)
 		}
-		return id, nil
+		return
 	}
 
-	return -1, ErrInvalidLogin
+	err = ErrInvalidLogin
+	return
 }
