@@ -19,7 +19,8 @@ func (c User) Home(username string) rev.Result {
 	}
 	self := c.RenderArgs["self"].(models.User)
 	quilts := self.Quilts()
-	return c.Render(quilts)
+	nav_home := true
+	return c.Render(quilts, nav_home)
 }
 
 // User's public home page (i.e., when the user's page is viewed by anyone
