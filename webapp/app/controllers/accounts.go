@@ -45,7 +45,7 @@ func (c Accounts) HandleLogin(email, password string) rev.Result {
 	}
 
 	c.Session["uname"] = name
-	return c.Redirect(Application.Index)
+	return c.Redirect("/users/%s", name)
 }
 
 func (c Accounts) Logout() rev.Result {
