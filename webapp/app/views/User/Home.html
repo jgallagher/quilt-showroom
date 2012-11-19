@@ -7,7 +7,12 @@
 <p><a href="/users/{{.self.Name}}/create-quilt">Create a new quilt</a></p>
 
 {{if .quilts}}
-has quilts
+<ul>
+	{{$name := .self.Name}}
+	{{range .quilts}}
+	<li><a href="/users/{{$name}}/quilt/{{.Id}}">{{.Name}}</a></li>
+	{{end}}
+</ul>
 {{else}}
 <p>You don't have any quilts!</p>
 {{end}}

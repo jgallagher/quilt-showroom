@@ -5,7 +5,12 @@
 <h3>Quilts</h3>
 
 {{if .quilts}}
-has quilts
+<ul>
+	{{$name := .user.Name}}
+	{{range .quilts}}
+	<li><a href="/users/{{$name}}/quilt/{{.Id}}">{{.Name}}</a></li>
+	{{end}}
+</ul>
 {{else}}
 <div>{{.user.Name}} has no publicly-accessible quilts.</div>
 {{end}}
