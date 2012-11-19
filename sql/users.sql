@@ -2,9 +2,8 @@
 --   - Displayed names and emails must be globally unique.
 --   - Displayed names must contain only letters, numbers, _, and -.
 CREATE TABLE users (
-    user_id     SERIAL  PRIMARY KEY,
-    name        VARCHAR UNIQUE  CONSTRAINT check_name
-        CHECK (name IS NOT NULL AND name ~ '^[-a-zA-Z0-9_]+$'),
+    user_id     VARCHAR PRIMARY KEY
+        CONSTRAINT check_name CHECK (user_id ~ '^[-a-zA-Z0-9_]+$'),
     email       VARCHAR UNIQUE  NOT NULL,
     password    VARCHAR         NOT NULL
 );
@@ -19,31 +18,22 @@ CREATE TABLE users (
 -- difficult to the point of uselessness.
 CREATE TYPE users_create_code AS ENUM (
     'success', 'dup_name', 'dup_email', 'bad_name', 'bad_pass');
-CREATE TYPE users_create_return AS (
-    code users_create_code,
-    user_id INT
-);
 
 -- Stored procedure to handle creating a new user. If successful, returns
 -- (success,new_user_id). If unsuccessful, returns (CODE, NULL) where CODE
 -- is one of the values above.
 CREATE OR REPLACE FUNCTION users_create(
-    name VARCHAR, email VARCHAR, password VARCHAR)
-RETURNS users_create_return AS $$
-DECLARE
-    user_id users.user_id%TYPE;
-    ret users_create_return;
+    _name VARCHAR, _email VARCHAR, _password VARCHAR)
+RETURNS users_create_code AS $$
 BEGIN
     -- See if the requested username already exists.
-    IF EXISTS (SELECT 1 FROM users WHERE users.name = users_create.name) THEN
-        ret.code = 'dup_name';
-        RETURN ret;
+    IF EXISTS (SELECT 1 FROM users WHERE user_id = _name) THEN
+        RETURN 'dup_name';
     END IF;
 
     -- See if the requested email already exists.
-    IF EXISTS (SELECT 1 FROM users WHERE users.email = users_create.email) THEN
-        ret.code = 'dup_email';
-        RETURN ret;
+    IF EXISTS (SELECT 1 FROM users WHERE email = _email) THEN
+        RETURN 'dup_email';
     END IF;
 
     -- Everything looks good - insert and return the new user_id.
@@ -52,20 +42,16 @@ BEGIN
     --  - check_violation may be thrown by the check constraint on the name
     --    column
     BEGIN
-        INSERT INTO users(name, email, password) VALUES(name, email, password)
-            RETURNING users.user_id INTO ret.user_id;
+        INSERT INTO users(user_id, email, password) VALUES(_name, _email, _password);
     EXCEPTION
         WHEN raise_exception THEN
-            ret.code = 'bad_pass';
-            RETURN ret;
+            RETURN 'bad_pass';
         WHEN check_violation THEN
-            ret.code = 'bad_name';
-            RETURN ret;
+            RETURN 'bad_name';
     END;
 
     -- No exception on insert - success!
-    ret.code = 'success';
-    RETURN ret;
+    RETURN 'success';
 END;
 $$ LANGUAGE plpgsql;
 

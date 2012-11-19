@@ -1,0 +1,44 @@
+{{template "header.html" .}}
+
+<h1>Create a New Quilt</h1>
+
+<form class="form-horizontal" action="/users/{{.self.Name}}/create-quilt" method="POST">
+	<div class="control-group{{if .errors.name}} error{{end}}">
+		<label class="control-label" for="name">Quilt Name</label>
+		<div class="controls">
+			<input type="text" name="name" value="{{.flash.name}}" placeholder="Name of your new quilt"/>
+			<span class="help-inline">{{.errors.name}}</span>
+		</div>
+	</div>
+	<div class="control-group{{if .errors.width}} error{{end}}">
+		<label class="control-label" for="width">Width (in inches)</label>
+		<div class="controls">
+			<input type="text" name="width" value="{{.flash.width}}" placeholder="48"/>
+			<span class="help-inline">{{.errors.width}}</span>
+		</div>
+	</div>
+	<div class="control-group{{if .errors.height}} error{{end}}">
+		<label class="control-label" for="height">Height (in inches)</label>
+		<div class="controls">
+			<input type="text" name="height" value="{{.flash.height}}" placeholder="48"/>
+			<span class="help-inline">{{.errors.height}}</span>
+		</div>
+	</div>
+	<div class="control-group">
+		<label class="control-label" for="visibility">Visibility</label>
+		<div class="controls">
+			<select name="visibility">
+				<option value="public"{{if .flash.visibilitypublic}} selected{{end}}>Public (visible to everyone)</option>
+				<option value="protected"{{if .flash.visibilityprotected}} selected{{end}}>Hidden (visible only if you give someone a link)</option>
+				<option value="private"{{if .flash.visibilityprivate}} selected{{end}}>Private (only visible to you)</option>
+			</select>
+		</div>
+	</div>
+	<div class="control-group">
+		<div class="controls">
+			<button type="submit" class="btn">Create</button>
+		</div>
+	</div>
+</form>
+
+{{template "footer.html" .}}

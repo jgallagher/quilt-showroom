@@ -7,7 +7,12 @@ GET     /accounts/create                        Accounts.Create
 POST    /accounts/create                        Accounts.HandleCreate
 GET     /accounts/login                         Accounts.Login
 POST    /accounts/login                         Accounts.HandleLogin
-GET		/accounts/logout						Accounts.Logout
+GET     /accounts/logout                        Accounts.Logout
+
+GET     /users/{username}                       User.PublicHome
+GET     /users/{username}/create-quilt          User.CreateQuilt
+POST    /users/{username}/create-quilt          User.HandleCreateQuilt
+GET     /users/{username}/quilt/{id}            User.Quilt
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

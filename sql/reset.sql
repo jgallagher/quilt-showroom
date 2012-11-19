@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS quilt_polys CASCADE;
 DROP TABLE IF EXISTS quilt_comments CASCADE;
 DROP TABLE IF EXISTS quilts CASCADE;
 DROP TYPE IF EXISTS visibility CASCADE;
+DROP TYPE IF EXISTS quilt_create_return CASCADE;
+DROP TYPE IF EXISTS quilt_create_code CASCADE;
 
 -- Tables and types from fabrics.sql.
 DROP TABLE IF EXISTS user_fabrics CASCADE;
@@ -21,7 +23,6 @@ DROP TYPE IF EXISTS fabric_type CASCADE;
 
 -- Tables and types from users.sql.
 DROP TABLE IF EXISTS users CASCADE;
-DROP TYPE IF EXISTS users_create_return CASCADE;
 DROP TYPE IF EXISTS users_create_code CASCADE;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;

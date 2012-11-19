@@ -25,8 +25,8 @@
 			<div class="navbar-inner">
 				<a class="brand" href="/">Quilter's Showroom</a>
 				<p class="navbar-text pull-right">
-				{{if .uname}}
-				Logged in as {{.uname}} (<a class="navbar-link" href="/accounts/logout">Log Out</a>)
+				{{if .self}}
+				Logged in as {{.self.Name}} (<a class="navbar-link" href="/accounts/logout">Log Out</a>)
 				{{else}}
 				Not logged in (<a class="navbar-link" href="/accounts/login">Log In</a> or <a class="navbar-link" href="/accounts/create">Join</a>)
 				{{end}}

@@ -2,10 +2,6 @@
 
 <h1>Create a New Account</h1>
 
-{{if .errors.general}}
-<span class="error">User creation error: {{.errors.general}}</span>
-{{end}}
-
 <form class="form-horizontal" action="/accounts/create" method="POST">
 	<div class="control-group{{if .errors.username}} error{{end}}">
 		<label class="control-label" for="username">Desired Username</label>

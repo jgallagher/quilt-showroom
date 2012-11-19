@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/robfig/revel"
+	"github.com/jgallagher/dbproject/webapp/app/models"
 )
 
 type Accounts struct {
@@ -18,9 +19,15 @@ func init() {
 
 func (p RenderUserInfoPlugin) BeforeRequest(c *rev.Controller) {
 	uname, ok := c.Session["uname"]
-	if ok {
-		c.RenderArgs["uname"] = uname
+	if !ok {
+		return
 	}
+	user, err := models.LoadUser(uname)
+	if err != nil {
+		delete(c.Session, "uname")
+		return
+	}
+	c.RenderArgs["self"] = user
 }
 
 func (c Accounts) Login() rev.Result {
@@ -28,7 +35,7 @@ func (c Accounts) Login() rev.Result {
 }
 
 func (c Accounts) HandleLogin(email, password string) rev.Result {
-	name, err := db.Login(email, password)
+	name, err := models.Login(email, password)
 
 	if err != nil {
 		c.Validation.Required(nil)
@@ -65,19 +72,19 @@ func (c Accounts) HandleCreate(username, email,
 		return c.Redirect(Accounts.Create)
 	}
 
-	err := db.CreateUser(username, email, password)
+	err := models.CreateUser(username, email, password)
 
 	switch err {
 	case nil:
 		break
-	case ErrNameTaken, ErrBadName:
+	case models.ErrNameTaken, models.ErrBadName:
 		c.Validation.Required(nil).Key("username").Message(err.Error())
-	case ErrEmailTaken:
+	case models.ErrEmailTaken:
 		c.Validation.Required(nil).Key("email").Message(err.Error())
-	case ErrBadPass:
+	case models.ErrBadPass:
 		c.Validation.Required(nil).Key("password").Message(err.Error())
 	default:
-		c.Validation.Required(nil).Key("general").Message(err.Error())
+		panic(err)
 	}
 
 	if err != nil {

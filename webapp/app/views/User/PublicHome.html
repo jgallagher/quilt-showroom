@@ -1,0 +1,13 @@
+{{template "header.html"}}
+
+<h2>{{.user.Name}}'s Showroom</h2>
+
+<h3>Quilts</h3>
+
+{{if .quilts}}
+has quilts
+{{else}}
+<div>{{.user.Name}} has no publicly-accessible quilts.</div>
+{{end}}
+
+{{template "footer.html"}}

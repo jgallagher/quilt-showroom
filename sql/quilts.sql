@@ -5,10 +5,19 @@
 --     advertised.
 CREATE TYPE visibility AS ENUM ('public', 'private', 'protected');
 
+-- Possible outcomes of the quilt_create function:
+--  - success
+--  - dup_name - the given user already has a quilt with the supplied name
+CREATE TYPE quilt_create_code AS ENUM ('success', 'dup_name');
+CREATE TYPE quilt_create_return AS (
+    code quilt_create_code,
+    quilt_id INT
+);
+
 -- Main table for quilts.
 CREATE TABLE quilts (
     quilt_id    SERIAL      PRIMARY KEY,
-    user_id     INTEGER     NOT NULL REFERENCES users(user_id),
+    user_id     VARCHAR     NOT NULL REFERENCES users(user_id),
     name        VARCHAR     NOT NULL,
     visibility  visibility  NOT NULL DEFAULT 'private',
     width       INTEGER     NOT NULL CHECK (width > 0),
@@ -18,11 +27,31 @@ CREATE TABLE quilts (
     UNIQUE (user_id, name)
 );
 
+-- Helper function to create a quilt and allow the application to check
+-- for a duplicate name.
+CREATE OR REPLACE FUNCTION quilt_create(_user_id VARCHAR, _name VARCHAR,
+    _visibility visibility, _width INTEGER, _height INTEGER)
+RETURNS quilt_create_return AS $$
+DECLARE
+    ret quilt_create_return;
+BEGIN
+    ret.code := 'success';
+    BEGIN
+        INSERT INTO quilts(user_id, name, visibility, width, height)
+            VALUES (_user_id, _name, _visibility, _width, _height)
+            RETURNING quilt_id INTO ret.quilt_id;
+    EXCEPTION WHEN unique_violation THEN
+        ret.code := 'dup_name';
+    END;
+    RETURN ret;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Table for comments users leave on quilts.
 CREATE TABLE quilt_comments (
     comment_id  SERIAL  PRIMARY KEY,
     quilt_id    INTEGER NOT NULL REFERENCES quilts(quilt_id),
-    user_id     INTEGER NOT NULL REFERENCES users(user_id),
+    user_id     VARCHAR NOT NULL REFERENCES users(user_id),
     comment     TEXT    NOT NULL,
     created     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );

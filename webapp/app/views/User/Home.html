@@ -1,0 +1,15 @@
+{{template "header.html" .}}
+
+<h2>Your Showroom</h2>
+
+<h3>Quilts</h3>
+
+<p><a href="/users/{{.self.Name}}/create-quilt">Create a new quilt</a></p>
+
+{{if .quilts}}
+has quilts
+{{else}}
+<p>You don't have any quilts!</p>
+{{end}}
+
+{{template "footer.html" .}}
