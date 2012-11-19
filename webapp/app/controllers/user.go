@@ -90,6 +90,13 @@ func (c User) Quilt(username string, id int) rev.Result {
 	return c.Render()
 }
 
+func (c User) PublicQuilt(username string, id int) rev.Result {
+	if username == c.Session["uname"] {
+		return c.Quilt(username, id)
+	}
+	return c.Render()
+}
+
 func (c User) checkUser(username string) rev.Result {
 	if username != c.Session["uname"] {
 		return c.Redirect(Accounts.Login)
