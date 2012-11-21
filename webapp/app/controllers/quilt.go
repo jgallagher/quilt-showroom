@@ -18,6 +18,9 @@ func (c Quilt) PublicQuilt(id int) rev.Result {
 	if quilt.UserId() == c.Session["uname"] {
 		return c.Quilt(quilt)
 	}
+	if quilt.Visibility() == "private" {
+		return c.NotFound("Quilt not visible.")
+	}
 	return c.Render()
 }
 

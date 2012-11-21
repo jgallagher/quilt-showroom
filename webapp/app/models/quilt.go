@@ -11,8 +11,8 @@ var (
 )
 
 type Comment struct {
-	User string
-	Comment string
+	User      string
+	Comment   string
 	Timestamp time.Time
 }
 
@@ -20,19 +20,22 @@ type Quilt interface {
 	Id() int
 	Name() string
 	UserId() string
+	Visibility() string
 	PostComment(username, comment string) error
 	Comments() []Comment
 }
 
 type quilt struct {
-	id     int
-	name   string
-	userId string
+	id         int
+	name       string
+	userId     string
+	visibility string
 }
 
-func (q *quilt) Name() string   { return q.name }
-func (q *quilt) Id() int        { return q.id }
-func (q *quilt) UserId() string { return q.userId }
+func (q *quilt) Name() string       { return q.name }
+func (q *quilt) Id() int            { return q.id }
+func (q *quilt) UserId() string     { return q.userId }
+func (q *quilt) Visibility() string { return q.visibility }
 
 func (q *quilt) PostComment(username, comment string) error {
 	_, err := db.Exec(
@@ -83,8 +86,8 @@ func createQuilt(username, name, visibility string, width, height int) (Quilt, e
 
 func LoadQuilt(id int) (Quilt, error) {
 	q := &quilt{id: id}
-	row := db.QueryRow(`SELECT user_id,name FROM quilts WHERE quilt_id=$1`, id)
-	if err := row.Scan(&q.userId, &q.name); err != nil {
+	row := db.QueryRow(`SELECT user_id,name,visibility FROM quilts WHERE quilt_id=$1`, id)
+	if err := row.Scan(&q.userId, &q.name, &q.visibility); err != nil {
 		return nil, err
 	}
 	return q, nil
