@@ -10,6 +10,9 @@ POST    /accounts/login                         Accounts.HandleLogin
 GET     /accounts/logout                        Accounts.Logout
 
 GET     /users/{username}                       User.PublicHome
+GET     /users/{username}/quilts                User.Quilts
+GET     /users/{username}/fabrics               User.Fabrics
+GET     /users/{username}/blocks                User.Blocks
 GET     /users/{username}/create-quilt          User.CreateQuilt
 POST    /users/{username}/create-quilt          User.HandleCreateQuilt
 

@@ -1,4 +1,4 @@
-{{template "header.html"}}
+{{template "header.html" .}}
 
 <h2>{{.user.Name}}'s Showroom</h2>
 
@@ -15,4 +15,4 @@
 <div>{{.user.Name}} has no publicly-accessible quilts.</div>
 {{end}}
 
-{{template "footer.html"}}
+{{template "footer.html" .}}

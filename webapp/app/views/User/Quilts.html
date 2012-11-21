@@ -1,14 +1,11 @@
 {{template "header.html" .}}
 
-<h2>Your Showroom</h2>
-
-<h3>Quilts</h3>
+<h2>Quilts</h2>
 
 <p><a href="/users/{{.self.Name}}/create-quilt">Create a new quilt</a></p>
 
 {{if .quilts}}
 <ul>
-	{{$name := .self.Name}}
 	{{range .quilts}}
 	<li><a href="/quilts/{{.Id}}">{{.Name}}</a></li>
 	{{end}}

@@ -10,24 +10,10 @@ type User struct {
 	*rev.Controller
 }
 
-// User's private home page (i.e., when the user's page is viewed by the user).
-// Note that this method is not exposed in the application routes; rather, it
-// is called directly from PublicHome if the logged-in user matches.
-func (c User) Home(username string) rev.Result {
-	if invalid := c.checkUser(username); invalid != nil {
-		return invalid
-	}
-	self := c.RenderArgs["self"].(models.User)
-	quilts := self.Quilts()
-	nav_home := true
-	return c.Render(quilts, nav_home)
-}
-
-// User's public home page (i.e., when the user's page is viewed by anyone
-// except the user himself).
+// User's public home page.
 func (c User) PublicHome(username string) rev.Result {
 	if username == c.Session["uname"] {
-		return c.Home(username)
+		c.RenderArgs["nav_home"] = true
 	}
 	user, err := models.LoadUser(username)
 	if err != nil {
@@ -36,6 +22,35 @@ func (c User) PublicHome(username string) rev.Result {
 
 	quilts := user.PublicQuilts()
 	return c.Render(user, quilts)
+}
+
+// User's quilts page.
+func (c User) Quilts(username string) rev.Result {
+	if invalid := c.checkUser(username); invalid != nil {
+		return invalid
+	}
+	self := c.RenderArgs["self"].(models.User)
+	quilts := self.Quilts()
+	nav_quilts := true
+	return c.Render(quilts, nav_quilts)
+}
+
+// User's fabrics page.
+func (c User) Fabrics(username string) rev.Result {
+	if invalid := c.checkUser(username); invalid != nil {
+		return invalid
+	}
+	nav_fabrics := true
+	return c.Render(nav_fabrics)
+}
+
+// User's blocks page.
+func (c User) Blocks(username string) rev.Result {
+	if invalid := c.checkUser(username); invalid != nil {
+		return invalid
+	}
+	nav_blocks := true
+	return c.Render(nav_blocks)
 }
 
 // Present form to create a new quilt.
