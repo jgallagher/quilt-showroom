@@ -30,11 +30,11 @@ func (p RenderUserInfoPlugin) BeforeRequest(c *rev.Controller) {
 	c.RenderArgs["self"] = user
 }
 
-func (c Accounts) Login() rev.Result {
-	return c.Render()
+func (c Accounts) Login(redirect string) rev.Result {
+	return c.Render(redirect)
 }
 
-func (c Accounts) HandleLogin(email, password string) rev.Result {
+func (c Accounts) HandleLogin(email, password, redirect string) rev.Result {
 	name, err := models.Login(email, password)
 
 	if err != nil {
@@ -45,7 +45,11 @@ func (c Accounts) HandleLogin(email, password string) rev.Result {
 	}
 
 	c.Session["uname"] = name
-	return c.Redirect("/users/%s", name)
+
+	if redirect == "" {
+		return c.Redirect("/users/%s", name)
+	}
+	return c.Redirect(redirect)
 }
 
 func (c Accounts) Logout() rev.Result {

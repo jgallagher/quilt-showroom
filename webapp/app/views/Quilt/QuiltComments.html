@@ -16,7 +16,7 @@
 			<button type="submit" class="btn">Comment</button>
 		</div>
 		{{else}}
-		<p><a href="/accounts/login">Log in</a> to post a comment.</p>
+		<p><a href="/accounts/login?redirect=/quilts/{{.quilt.Id}}">Log in</a> to post a comment.</p>
 		{{end}}
 	</fieldset>
 </form>
