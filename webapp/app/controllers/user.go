@@ -40,8 +40,18 @@ func (c User) Fabrics(username string) rev.Result {
 	if invalid := c.checkUser(username); invalid != nil {
 		return invalid
 	}
+	color_fabrics, image_fabrics := models.LoadFabrics(username)
 	nav_fabrics := true
-	return c.Render(nav_fabrics)
+	return c.Render(color_fabrics, image_fabrics, nav_fabrics)
+}
+
+// Handle POST of a new color fabric.
+func (c User) AddColorFabric(username, color string) rev.Result {
+	if invalid := c.checkUser(username); invalid != nil {
+		return invalid
+	}
+	models.AddColorFabric(username, color)
+	return c.Redirect("/users/%s/fabrics", username)
 }
 
 // User's blocks page.

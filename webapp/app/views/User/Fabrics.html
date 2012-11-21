@@ -2,6 +2,30 @@
 
 <h2>Fabrics</h2>
 
-<p>todo</p>
+<h3>Solid Color Fabric Palette</h3>
+
+<form class="form-inline" action="/users/{{.self.Name}}/fabrics/add-color" method="POST">
+	<label for="color">Add New Color:</label>
+	<input width=10 type="color" name="color" value="#0000ff"/>
+	<button type="submit" class="btn">Add</button>
+</form>
+
+{{if .color_fabrics}}
+<ul class="thumbnails">
+{{range .color_fabrics}}
+<li class="span1 thumbnail" style="background: #{{.Color}}"></li>
+{{end}}
+</ul>
+{{else}}
+<p>You haven't added any solid colors to your fabric palette.</p>
+{{end}}
+
+<h3>Image Fabric Palette</h3>
+
+{{range .image_fabrics}}
+<p>{{.Path}}, {{.Name}}</p>
+{{else}}
+<p>You haven't uploaded any fabric images to your fabric palette.</p>
+{{end}}
 
 {{template "footer.html" .}}

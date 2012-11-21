@@ -12,6 +12,7 @@ GET     /accounts/logout                        Accounts.Logout
 GET     /users/{username}                       User.PublicHome
 GET     /users/{username}/quilts                User.Quilts
 GET     /users/{username}/fabrics               User.Fabrics
+POST    /users/{username}/fabrics/add-color     User.AddColorFabric
 GET     /users/{username}/blocks                User.Blocks
 GET     /users/{username}/create-quilt          User.CreateQuilt
 POST    /users/{username}/create-quilt          User.HandleCreateQuilt

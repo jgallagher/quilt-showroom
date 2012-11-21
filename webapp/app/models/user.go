@@ -65,6 +65,15 @@ func Login(email, password string) (name string, err error) {
 	return
 }
 
+func AddColorFabric(name, color string) {
+	if color[0] == '#' {
+		color = color[1:]
+	}
+	// ignore errors on insert for colors
+	db.Exec(`INSERT INTO user_fabrics(user_id,fabric_id)
+	         VALUES($1,fabric_color($2))`, name, color)
+}
+
 func LoadUser(name string) (User, error) {
 	rows, err := db.Query(`SELECT 1 FROM users WHERE user_id = $1`, name)
 	if err != nil {
