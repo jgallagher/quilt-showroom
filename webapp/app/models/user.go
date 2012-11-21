@@ -98,7 +98,7 @@ func (u *user) PublicQuilts() (quilts []Quilt) {
 		if err = rows.Scan(&id, &name); err != nil {
 			panic(err)
 		}
-		quilts = append(quilts, &quilt{id, name})
+		quilts = append(quilts, &quilt{id: id, name: name})
 	}
 
 	return quilts
@@ -117,7 +117,7 @@ func (u *user) Quilts() (quilts []Quilt) {
 		if err = rows.Scan(&id, &name); err != nil {
 			panic(err)
 		}
-		quilts = append(quilts, &quilt{id, name})
+		quilts = append(quilts, &quilt{id: id, name: name})
 	}
 
 	return quilts

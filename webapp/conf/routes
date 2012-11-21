@@ -12,7 +12,9 @@ GET     /accounts/logout                        Accounts.Logout
 GET     /users/{username}                       User.PublicHome
 GET     /users/{username}/create-quilt          User.CreateQuilt
 POST    /users/{username}/create-quilt          User.HandleCreateQuilt
-GET     /users/{username}/quilt/{id}            User.PublicQuilt
+
+GET     /quilts/{id}                            Quilt.PublicQuilt
+POST    /quilts/{id}/comment                    Quilt.Comment
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

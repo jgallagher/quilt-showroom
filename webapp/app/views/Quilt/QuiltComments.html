@@ -1,0 +1,22 @@
+<form action="/quilts/{{.quilt.Id}}/comment" method="POST">
+	<fieldset>
+		<legend>Comments</legend>
+		{{range .quilt.Comments}}
+		<div class="well well-small">
+			<span class="pull-right muted">Posted by {{.User}} at {{.Timestamp}}</span>
+			<p>{{.Comment}}</p>
+		</div>
+		{{else}}
+		<p>No comments have been posted on this quilt.</p>
+		{{end}}
+		{{if .self}}
+		<label>Leave a Comment</label>
+		<textarea name="comment" rows="4" placeholder="I love this quilt!"></textarea>
+		<div>
+			<button type="submit" class="btn">Comment</button>
+		</div>
+		{{else}}
+		<p><a href="/accounts/login">Log in</a> to post a comment.</p>
+		{{end}}
+	</fieldset>
+</form>

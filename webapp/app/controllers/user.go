@@ -80,21 +80,7 @@ func (c User) HandleCreateQuilt(username, name, visibility string, width, height
 		panic(err)
 	}
 
-	return c.Redirect("/users/%s/quilt/%d", username, quilt.Id())
-}
-
-func (c User) Quilt(username string, id int) rev.Result {
-	if invalid := c.checkUser(username); invalid != nil {
-		return invalid
-	}
-	return c.Render()
-}
-
-func (c User) PublicQuilt(username string, id int) rev.Result {
-	if username == c.Session["uname"] {
-		return c.Quilt(username, id)
-	}
-	return c.Render()
+	return c.Redirect("/quilts/%d", username, quilt.Id())
 }
 
 func (c User) checkUser(username string) rev.Result {

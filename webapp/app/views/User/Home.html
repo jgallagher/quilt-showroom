@@ -10,7 +10,7 @@
 <ul>
 	{{$name := .self.Name}}
 	{{range .quilts}}
-	<li><a href="/users/{{$name}}/quilt/{{.Id}}">{{.Name}}</a></li>
+	<li><a href="/quilts/{{.Id}}">{{.Name}}</a></li>
 	{{end}}
 </ul>
 {{else}}
