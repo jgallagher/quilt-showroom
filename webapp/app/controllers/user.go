@@ -95,7 +95,7 @@ func (c User) HandleCreateQuilt(username, name, visibility string, width, height
 		panic(err)
 	}
 
-	return c.Redirect("/quilts/%d", username, quilt.Id())
+	return c.Redirect("/quilts/%d", quilt.Id())
 }
 
 func (c User) checkUser(username string) rev.Result {
