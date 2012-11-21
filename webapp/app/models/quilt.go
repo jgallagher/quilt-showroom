@@ -51,12 +51,16 @@ func (q *quilt) Comments() (comments []Comment) {
 	if err != nil {
 		panic(err)
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var c Comment
 		if err = rows.Scan(&c.User, &c.Comment, &c.Timestamp); err != nil {
 			panic(err)
 		}
 		comments = append(comments, c)
+	}
+	if rows.Err() != nil {
+		panic(rows.Err())
 	}
 	return
 }
