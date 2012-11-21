@@ -55,6 +55,7 @@ CREATE TABLE quilt_comments (
     comment     TEXT    NOT NULL,
     created     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+CREATE INDEX ON quilt_comments (quilt_id);
 
 -- Table for quilt polygons.
 CREATE TABLE quilt_polys (

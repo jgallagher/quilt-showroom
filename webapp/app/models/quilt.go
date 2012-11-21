@@ -42,7 +42,9 @@ func (q *quilt) PostComment(username, comment string) error {
 }
 
 func (q *quilt) Comments() (comments []Comment) {
-	rows, err := db.Query(`SELECT user_id,comment,created FROM quilt_comments WHERE quilt_id=$1`, q.id)
+	rows, err := db.Query(`
+		SELECT user_id,comment,created FROM quilt_comments WHERE quilt_id=$1
+		ORDER BY created DESC`, q.id)
 	if err != nil {
 		panic(err)
 	}
