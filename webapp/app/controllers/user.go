@@ -10,6 +10,10 @@ type User struct {
 	*rev.Controller
 }
 
+// For quilts, user supplies width and height in inches but we store
+// units of 1/16 inch.
+var quiltDensity = 16
+
 // User's public home page.
 func (c User) PublicHome(username string) rev.Result {
 	if username == c.Session["uname"] {
@@ -100,7 +104,7 @@ func (c User) HandleCreateQuilt(username, name, visibility string, width, height
 	}
 
 	self := c.RenderArgs["self"].(models.User)
-	quilt, err := self.CreateQuilt(name, visibility, width, height)
+	quilt, err := self.CreateQuilt(name, visibility, width*quiltDensity, height*quiltDensity)
 	switch err {
 	case nil:
 		break
