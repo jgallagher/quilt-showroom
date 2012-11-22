@@ -1,6 +1,25 @@
+{{set . "title" .quilt.Name}}
+
 {{template "header.html" .}}
 
-todo - public view
+<div id="quilt-container" class="container-fluid">
+	<canvas id="quilt-canvas" width="800" height="800"></canvas>
+</div>
+
+<script src="/public/js/jcanvas.js"></script>
+<script src="/public/js/jsquilt.js"></script>
+<script>
+	$(document).ready(function() {
+	var q = Quilt({{.quilt.Width}}, {{.quilt.Height}}, 16, 1);
+	var c = $("#quilt-canvas");
+	var offx = 20;
+	var offy = 20;
+	c.addLayer(function(ctx) {
+		ctx.drawImage(q.grid, offx, offy);
+	});
+	c.drawLayers();
+});
+</script>
 
 {{template "Quilt/QuiltComments.html" .}}
 

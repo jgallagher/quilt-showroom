@@ -1,5 +1,4 @@
 {{set . "title" "Quilter's Showroom: Fabrics"}}
-{{set . "usefilepicker" "t"}}
 
 {{template "header.html" .}}
 
@@ -49,5 +48,9 @@
 {{if not .image_fabrics}}
 <p id="no-image-fabrics">You haven't uploaded any images to your fabric palette.</p>
 {{end}}
+
+<script src='http://feather.aviary.com/js/feather.js'></script>
+<script src='//api.filepicker.io/v1/filepicker.js'></script>
+<script src="/public/js/upload-fabric-image.js"></script>
 
 {{template "footer.html" .}}
