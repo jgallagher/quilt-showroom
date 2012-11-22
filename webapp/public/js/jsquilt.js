@@ -19,6 +19,41 @@ function Quilt(width, height, spacing, density) {
         quilt.grid = quilt.rebuild_grid();
     });
 
+    quilt.shapes = [];
+    quilt.add_shape = function(shape) {
+        quilt.shapes.push(shape);
+        console.log("added " + shape);
+    };
+
+    quilt.rebuild_shapes = function() {
+        var buf = document.createElement('canvas');
+        var ctx = buf.getContext('2d');
+        var s;
+        var i, j;
+        buf.width = orig.width();
+        buf.height = orig.height();
+
+        console.log(quilt.shapes);
+        console.log(quilt.shapes.length);
+        for (i = 0; i < quilt.shapes.length; i++) {
+            s = quilt.shapes[i];
+            if (s.color !== undefined) {
+                ctx.fillStyle = s.color;
+            }
+            ctx.beginPath();
+            ctx.moveTo(s.poly[0][0], s.poly[0][1]);
+            for (j = 1; j < s.poly.length; j++) {
+                ctx.lineTo(s.poly[j][0], s.poly[j][1]);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            console.log(s);
+        }
+
+        quilt.shapes = buf;
+    };
+
     quilt.build_overlay = function(width, height, polys) {
         var buf = document.createElement('canvas');
         var ctx = buf.getContext('2d');

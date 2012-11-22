@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 )
@@ -16,6 +17,11 @@ type Comment struct {
 	Timestamp time.Time
 }
 
+type Poly interface {
+	Coords() string
+	Color() string
+}
+
 type Quilt interface {
 	Id() int
 	Name() string
@@ -23,6 +29,7 @@ type Quilt interface {
 	Visibility() string
 	Width() int
 	Height() int
+	Polys() []Poly
 	PostComment(username, comment string) error
 	Comments() []Comment
 }
@@ -34,6 +41,16 @@ type quilt struct {
 	visibility string
 	width      int
 	height     int
+	polys      []Poly
+}
+
+type poly struct {
+	coords string
+	color  string
+}
+
+type geoJson struct {
+	Coordinates [][][]int `json:"coordinates"`
 }
 
 func (q *quilt) Name() string       { return q.name }
@@ -42,6 +59,10 @@ func (q *quilt) UserId() string     { return q.userId }
 func (q *quilt) Visibility() string { return q.visibility }
 func (q *quilt) Width() int         { return q.width }
 func (q *quilt) Height() int        { return q.height }
+func (q *quilt) Polys() []Poly      { return q.polys }
+
+func (p *poly) Coords() string { return p.coords }
+func (p *poly) Color() string  { return "#" + p.color }
 
 func (q *quilt) PostComment(username, comment string) error {
 	_, err := db.Exec(
@@ -102,5 +123,33 @@ func LoadQuilt(id int) (Quilt, error) {
 	if err := row.Scan(&q.userId, &q.name, &q.visibility, &q.width, &q.height); err != nil {
 		return nil, err
 	}
+
+	// load quilt polygons that have color fabrics
+	rows, err := db.Query(`
+		SELECT ST_AsGeoJSON(poly),color
+		FROM quilt_polys NATURAL JOIN fabric_colors
+		WHERE quilt_id = $1`, q.id)
+	if err != nil {
+		panic(err)
+	}
+
+	var coords geoJson
+	for rows.Next() {
+		var coordsJson []byte
+		var p poly
+		if err := rows.Scan(&coordsJson, &p.color); err != nil {
+			panic(err)
+		}
+		if err := json.Unmarshal(coordsJson, &coords); err != nil {
+			panic(err)
+		}
+		coordsJson, err = json.Marshal(coords.Coordinates[0])
+		if err != nil {
+			panic(err)
+		}
+		p.coords = string(coordsJson)
+		q.polys = append(q.polys, &p)
+	}
+
 	return q, nil
 }
