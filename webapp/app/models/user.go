@@ -74,6 +74,28 @@ func AddColorFabric(name, color string) {
 	         VALUES($1,fabric_color($2))`, name, color)
 }
 
+func AddImageFabric(username, fabricname, url string) int {
+	var imageId, fabricId int
+	tx, err := db.Begin()
+	if err != nil {
+		panic(err)
+	}
+	defer tx.Commit()
+
+	row := tx.QueryRow(`INSERT INTO images(user_id,url)
+	                    VALUES($1,$2) RETURNING image_id`, username, url)
+	if err := row.Scan(&imageId); err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+	row = tx.QueryRow(`SELECT * FROM fabric_image($1,$2)`, imageId, fabricname)
+	if err := row.Scan(&fabricId); err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+	return fabricId
+}
+
 func LoadUser(name string) (User, error) {
 	rows, err := db.Query(`SELECT 1 FROM users WHERE user_id = $1`, name)
 	if err != nil {

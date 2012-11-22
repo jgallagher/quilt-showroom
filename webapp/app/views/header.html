@@ -6,7 +6,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="stylesheet" type="text/css" href="/public/css/bootstrap.css">
     <link rel="shortcut icon" type="image/png" href="/public/images/favicon.png">
-    <script src="/public/js/jquery-1.5.2.min.js" type="text/javascript" charset="utf-8"></script>
     {{range .moreStyles}}
       <link rel="stylesheet" type="text/css" href="/public/{{.}}">
     {{end}}
@@ -26,6 +25,22 @@
 			.thumbnails > li {
 				border: 1px solid black;
 				min-height: 14px;
+			}
+			#pane_ancestor {
+				position: relative;
+				width: 800px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			#web_demo_pane {
+				position: absolute;
+				margin-left: auto;
+				margin-right: auto;
+				//width: 800px;
+				top: -100px;
+			}
+			#web_demo_preview {
+				display: none;
 			}
 		</style>
   </head>

@@ -74,6 +74,14 @@ func (c User) CreateQuilt(username string) rev.Result {
 	return c.Render()
 }
 
+func (c User) HandleUploadFabric(username, name, url string) rev.Result {
+	if invalid := c.checkUser(username); invalid != nil {
+		return invalid
+	}
+	fabricId := models.AddImageFabric(username, name, url)
+	return c.RenderJson(fabricId)
+}
+
 func (c User) HandleCreateQuilt(username, name, visibility string, width, height int) rev.Result {
 	if invalid := c.checkUser(username); invalid != nil {
 		return invalid

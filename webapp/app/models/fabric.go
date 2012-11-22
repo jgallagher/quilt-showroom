@@ -5,7 +5,7 @@ type FabricColor struct {
 }
 
 type FabricImage struct {
-	Path string
+	Url  string
 	Name string
 }
 
@@ -23,6 +23,21 @@ func LoadFabrics(username string) (color []FabricColor, image []FabricImage) {
 			panic(err)
 		}
 		color = append(color, c)
+	}
+	rows, err = db.Query(`
+		SELECT url,name
+		FROM fabric_images NATURAL JOIN user_fabrics NATURAL JOIN images
+		WHERE user_id = $1 ORDER BY name`, username)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var i FabricImage
+		if err = rows.Scan(&i.Url, &i.Name); err != nil {
+			panic(err)
+		}
+		image = append(image, i)
 	}
 	return
 }

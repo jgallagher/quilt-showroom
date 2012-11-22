@@ -1,3 +1,6 @@
+{{set . "title" "Quilter's Showroom: Fabrics"}}
+{{set . "usefilepicker" "t"}}
+
 {{template "header.html" .}}
 
 <h2>Fabrics</h2>
@@ -22,10 +25,29 @@
 
 <h3>Image Fabric Palette</h3>
 
+<form class="form-inline">
+	<label for="name">Add New Fabric from Image:</label>
+	<input id="fabricname" width="20" type="text" name="fabricname" placeholder="Name Your Fabric"/>
+	<button id="start_web_demo" type="button" class="btn">Upload Image</button>
+</form>
+
+<img id="web_demo_preview"/>
+<div id="pane_ancestor">
+<div id="web_demo_pane"></div>
+</div>
+
+<ul id="image-fabrics" class="thumbnails">
 {{range .image_fabrics}}
-<p>{{.Path}}, {{.Name}}</p>
-{{else}}
-<p>You haven't uploaded any fabric images to your fabric palette.</p>
+<li class="span4">
+	<div class="thumbnail">
+		<img src="{{.Url}}"/>
+		<p>{{.Name}}</p>
+	</div>
+</li>
+{{end}}
+</ul>
+{{if not .image_fabrics}}
+<p id="no-image-fabrics">You haven't uploaded any images to your fabric palette.</p>
 {{end}}
 
 {{template "footer.html" .}}

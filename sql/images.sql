@@ -1,9 +1,8 @@
 -- Main table for images uploaded by users.
 CREATE TABLE images (
     image_id    SERIAL  PRIMARY KEY,
-    user_id     INTEGER NOT NULL REFERENCES users(user_id),
-    path        VARCHAR NOT NULL,
-    file_size   INTEGER NOT NULL
+    user_id     VARCHAR NOT NULL REFERENCES users(user_id),
+    url         VARCHAR NOT NULL
 );
 
 -- Table linking images to quilts (e.g., an uploaded picture of a completed
@@ -34,6 +33,8 @@ BEGIN
         RETURNING fabric_id INTO id;
     INSERT INTO fabric_images(fabric_id, image_id, name)
         VALUES (id, _image_id, _name);
+    INSERT INTO user_fabrics(user_id, fabric_id)
+        VALUES((SELECT user_id FROM images WHERE image_id = _image_id), id);
     RETURN id;
 END;
 $$ LANGUAGE plpgsql;

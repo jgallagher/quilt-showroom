@@ -16,6 +16,7 @@ POST    /users/{username}/fabrics/add-color     User.AddColorFabric
 GET     /users/{username}/blocks                User.Blocks
 GET     /users/{username}/create-quilt          User.CreateQuilt
 POST    /users/{username}/create-quilt          User.HandleCreateQuilt
+POST    /users/{username}/upload-fabric         User.HandleUploadFabric
 
 GET     /quilts/{id}                            Quilt.PublicQuilt
 POST    /quilts/{id}/comment                    Quilt.Comment
