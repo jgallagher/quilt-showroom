@@ -20,6 +20,7 @@ type Comment struct {
 type Poly interface {
 	Coords() string
 	Color() string
+	Url() string
 }
 
 type Quilt interface {
@@ -47,6 +48,7 @@ type quilt struct {
 type poly struct {
 	coords string
 	color  string
+	url    string
 }
 
 type geoJson struct {
@@ -63,6 +65,7 @@ func (q *quilt) Polys() []Poly      { return q.polys }
 
 func (p *poly) Coords() string { return p.coords }
 func (p *poly) Color() string  { return "#" + p.color }
+func (p *poly) Url() string    { return p.url }
 
 func (q *quilt) PostComment(username, comment string) error {
 	_, err := db.Exec(
@@ -116,6 +119,9 @@ func createQuilt(username, name, visibility string, width, height int) (Quilt, e
 }
 
 func LoadQuilt(id int) (Quilt, error) {
+	var coords geoJson
+	var coordsJson []byte
+
 	q := &quilt{id: id}
 	row := db.QueryRow(`
 		SELECT user_id,name,visibility,width,height
@@ -132,12 +138,35 @@ func LoadQuilt(id int) (Quilt, error) {
 	if err != nil {
 		panic(err)
 	}
-
-	var coords geoJson
+	defer rows.Close()
 	for rows.Next() {
-		var coordsJson []byte
 		var p poly
 		if err := rows.Scan(&coordsJson, &p.color); err != nil {
+			panic(err)
+		}
+		if err := json.Unmarshal(coordsJson, &coords); err != nil {
+			panic(err)
+		}
+		coordsJson, err = json.Marshal(coords.Coordinates[0])
+		if err != nil {
+			panic(err)
+		}
+		p.coords = string(coordsJson)
+		q.polys = append(q.polys, &p)
+	}
+
+	// load quilt polygons that have image fabrics
+	rows, err = db.Query(`
+		SELECT ST_AsGeoJSON(poly),url
+		FROM quilt_polys NATURAL JOIN fabric_images NATURAL JOIN images
+		WHERE quilt_id = $1`, q.id)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var p poly
+		if err := rows.Scan(&coordsJson, &p.url); err != nil {
 			panic(err)
 		}
 		if err := json.Unmarshal(coordsJson, &coords); err != nil {

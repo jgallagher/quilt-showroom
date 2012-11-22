@@ -22,7 +22,6 @@ function Quilt(width, height, spacing, density) {
     quilt.shapes = [];
     quilt.add_shape = function(shape) {
         quilt.shapes.push(shape);
-        console.log("added " + shape);
     };
 
     quilt.rebuild_shapes = function() {
@@ -30,25 +29,42 @@ function Quilt(width, height, spacing, density) {
         var ctx = buf.getContext('2d');
         var s;
         var i, j;
+        var func;
         buf.width = orig.width();
         buf.height = orig.height();
 
-        console.log(quilt.shapes);
-        console.log(quilt.shapes.length);
         for (i = 0; i < quilt.shapes.length; i++) {
             s = quilt.shapes[i];
-            if (s.color !== undefined) {
-                ctx.fillStyle = s.color;
+            func = function() {
+                ctx.save();
+                if (s.color !== undefined) {
+                    ctx.fillStyle = s.color;
+                } else {
+                    var pattern = ctx.createPattern(s.img, 'repeat');
+                    ctx.fillStyle = pattern;
+                }
+                ctx.beginPath();
+                ctx.moveTo(s.poly[0][0], s.poly[0][1]);
+                for (j = 1; j < s.poly.length; j++) {
+                    ctx.lineTo(s.poly[j][0], s.poly[j][1]);
+                }
+                ctx.closePath();
+                ctx.clip();
+                ctx.fill();
+                ctx.stroke();
+                if (s.img !== undefined) {
+                    // we're being called in onload - need to force a redraw
+                    // of our parent quilt object
+                    quilt.shapes = buf;
+                    orig.drawLayers();
+                }
+                ctx.restore();
+            };
+            if (s.img !== undefined) {
+                s.img.onload = func;
+            } else {
+                func();
             }
-            ctx.beginPath();
-            ctx.moveTo(s.poly[0][0], s.poly[0][1]);
-            for (j = 1; j < s.poly.length; j++) {
-                ctx.lineTo(s.poly[j][0], s.poly[j][1]);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-            console.log(s);
         }
 
         quilt.shapes = buf;
@@ -124,7 +140,6 @@ function Quilt(width, height, spacing, density) {
             }
         }
         $.jCanvas();
-        console.log("build buffer "+buf);
         return buf;
     };
 
