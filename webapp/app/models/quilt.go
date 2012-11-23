@@ -17,12 +17,6 @@ type Comment struct {
 	Timestamp time.Time
 }
 
-type Poly interface {
-	Coords() string
-	Color() string
-	Url() string
-}
-
 type ColorPoly struct {
 	Id     int
 	Coords [][]int
@@ -46,19 +40,9 @@ type Quilt struct {
 	ImagePolys []*ImagePoly
 }
 
-type poly struct {
-	coords string
-	color  string
-	url    string
-}
-
 type geoJson struct {
 	Coordinates [][][]int `json:"coordinates"`
 }
-
-func (p *poly) Coords() string { return p.coords }
-func (p *poly) Color() string  { return "#" + p.color }
-func (p *poly) Url() string    { return p.url }
 
 func (q *Quilt) PostComment(username, comment string) error {
 	_, err := db.Exec(
