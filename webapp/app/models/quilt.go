@@ -114,7 +114,11 @@ func createQuilt(username, name, visibility string, width, height int) (*Quilt, 
 func LoadQuilt(id int) (*Quilt, error) {
 	var coordsJson []byte
 
-	q := &Quilt{Id: id}
+	q := &Quilt{
+		Id: id,
+		ColorPolys: make([]*ColorPoly, 0),
+		ImagePolys: make([]*ImagePoly, 0),
+	}
 	row := db.QueryRow(`
 		SELECT user_id,name,visibility,width,height
 		FROM quilts WHERE quilt_id=$1`, id)
@@ -167,4 +171,25 @@ func LoadQuilt(id int) (*Quilt, error) {
 	}
 
 	return q, nil
+}
+
+func QuiltOwner(userid string, quiltid int) bool {
+	rows, err := db.Query(`SELECT 1 FROM quilts WHERE user_id=$1 AND quilt_id=$2`,
+		userid, quiltid)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
+	}
+
+	return false
+}
+
+func DeletePoly(id int) {
+	if _, err := db.Exec(`DELETE FROM quilt_polys WHERE quilt_poly_id=$1`, id); err != nil {
+		panic(err)
+	}
 }

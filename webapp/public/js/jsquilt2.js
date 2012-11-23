@@ -10,6 +10,7 @@ function Quilt(id, canvas) {
         var i;
 
         console.log(data);
+        quilt.id = data.Id;
         quilt.width = data.Width;
         quilt.height = data.Height;
         canvas[0].width = quilt.width + 2*margin;
@@ -41,7 +42,22 @@ function Quilt(id, canvas) {
         canvas.drawLayers();
     };
 
+    quilt.deleteOnClick = function() {
+        canvas.setLayerGroup("polys", {
+            click: function(layer) {
+                console.log("remove layer " + layer.name + "," + layer.polyid);
+                canvas.removeLayer(layer.name);
+                canvas.drawLayers();
+                console.log("layer " + layer.name + " = " + canvas.getLayer(layer.name));
+                $.post("/quilts/"+quilt.id+"/poly-delete", {
+                    polyid: layer.polyid,
+                });
+            },
+        });
+    };
+
     quilt.addPoly = function(poly) {
+        var name = "poly-" + poly.Id;
         var args = {
             method: 'drawLine',
             fillStyle: '#' + poly.Color,
@@ -49,9 +65,10 @@ function Quilt(id, canvas) {
             strokeWidth: 1,
             closed: true,
             layer: true,
-            name: poly.Id,
+            name: name,
             group: 'polys',
             click: function() {},
+            polyid: poly.Id,
         }
         for (i = 0; i < poly.Coords.length; i++) {
             args['x'+(i+1)] = margin + poly.Coords[i][0];
@@ -62,7 +79,7 @@ function Quilt(id, canvas) {
             img.src = poly.Url;
             img.onload = function() {
                 var pattern = ctx.createPattern(img, 'repeat');
-                canvas.setLayer(poly.Id, { fillStyle: pattern });
+                canvas.setLayer(name, { fillStyle: pattern });
                 canvas.drawLayers();
             }
         }
@@ -102,4 +119,5 @@ function Quilt(id, canvas) {
     };
 
     $.get("/quilts/"+id+"/json", quilt.init);
+    return quilt;
 };

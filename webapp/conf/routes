@@ -21,6 +21,7 @@ POST    /users/{username}/upload-fabric         User.HandleUploadFabric
 GET     /quilts/{id}                            Quilt.PublicQuilt
 GET     /quilts/{id}/json                       Quilt.QuiltJson
 POST    /quilts/{id}/comment                    Quilt.Comment
+POST    /quilts/{id}/poly-delete                Quilt.PolyDelete
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

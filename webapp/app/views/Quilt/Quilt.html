@@ -1,6 +1,49 @@
+{{set . "title" .quilt.Name}}
+
 {{template "header.html" .}}
 
-todo - private view
+<div class="row-fluid">
+	<div class="span4">
+		<ul class="nav nav-tabs">
+			<li id="tab-add" class="active"><a href="#add">Add</a></li>
+			<li id="tab-delete"><a href="#delete">Delete</a></li>
+		</ul>
+
+		<div class="tab-content">
+			<div class="tab-pane active" id="add">
+				Todo!
+			</div>
+			<div class="tab-pane" id="delete">
+				<p>Click on shapes in your quilt to delete them.</p>
+			</div>
+		</div>
+	</div>
+
+<div class="span8">
+	<div id="quilt-container">
+		<canvas id="quilt-canvas" width="800" height="800"></canvas>
+	</div>
+</div>
+</div>
+
+
+<script src="/public/js/jcanvas.js"></script>
+<script src="/public/js/jsquilt2.js"></script>
+
+<script>
+	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"));
+	$('#tab-add a').click(function(e) {
+		e.preventDefault();
+		$(this).tab('show');
+		console.log("switch to add");
+	});
+	$('#tab-delete a').click(function(e) {
+		e.preventDefault();
+		$(this).tab('show');
+		console.log("switch to delete");
+		q.deleteOnClick();
+	});
+</script>
 
 {{template "Quilt/QuiltComments.html" .}}
 

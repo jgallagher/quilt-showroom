@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/robfig/revel"
 	"github.com/jgallagher/dbproject/webapp/app/models"
+	"log"
 )
 
 type Quilt struct {
@@ -52,4 +53,13 @@ func (c Quilt) Comment(id int, comment string) rev.Result {
 		panic(err)
 	}
 	return c.Redirect("/quilts/%d", id)
+}
+
+func (c Quilt) PolyDelete(id, polyid int) rev.Result {
+	if !models.QuiltOwner(c.Session["uname"], id) {
+		return c.NotFound("Action not allowed.")
+	}
+	log.Printf("deleting poly %d from quilt %d", polyid, id)
+	models.DeletePoly(polyid)
+	return c.RenderJson("ok")
 }
