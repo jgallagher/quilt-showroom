@@ -6,41 +6,13 @@
 	<canvas id="quilt-canvas" width="800" height="800"></canvas>
 </div>
 
-{{range $id,$p := .quilt.Polys}}
-{{if $p.Url}}
-<img id="quilt-img-{{$id}}" src="{{$p.Url}}" style="display:none"/>
-{{end}}
-{{end}}
 
 <script src="/public/js/jcanvas.js"></script>
-<script src="/public/js/jsquilt.js"></script>
-<script>
-	$(document).ready(function() {
-	var c = $("#quilt-canvas");
-	c[0].width = {{.quilt.Width}} + 32;
-	c[0].height = {{.quilt.Height}} + 32;
-	var q = Quilt({{.quilt.Width}}, {{.quilt.Height}}, 16, 1);
-	var offx = 20;
-	var offy = 20;
-	{{range $id,$p := .quilt.Polys}}
-	q.add_shape({
-		poly: eval({{$p.Coords}}),
-		{{if $p.Url}}
-		img: $("#quilt-img-{{$id}}")[0],
-		{{else}}
-		color: {{$p.Color}},
-		{{end}}
-	});
-	{{end}}
-	q.rebuild_shapes();
-	c.addLayer(function(ctx) {
-		ctx.drawImage(q.grid, offx, offy);
-		ctx.drawImage(q.shapes, offx, offy);
-	});
-	c.drawLayers();
-});
-</script>
+<script src="/public/js/jsquilt2.js"></script>
 
+<script>
+	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"));
+</script>
 {{template "Quilt/QuiltComments.html" .}}
 
 {{template "footer.html" .}}

@@ -15,16 +15,27 @@ func (c Quilt) PublicQuilt(id int) rev.Result {
 		panic(err)
 	}
 	c.RenderArgs["quilt"] = quilt
-	if quilt.UserId() == c.Session["uname"] {
+	if quilt.UserId == c.Session["uname"] {
 		return c.Quilt(quilt)
 	}
-	if quilt.Visibility() == "private" {
+	if quilt.Visibility == "private" {
 		return c.NotFound("Quilt not visible.")
 	}
 	return c.Render()
 }
 
-func (c Quilt) Quilt(quilt models.Quilt) rev.Result {
+func (c Quilt) QuiltJson(id int) rev.Result {
+	quilt, err := models.LoadQuilt(id)
+	if err != nil {
+		panic(err)
+	}
+	if quilt.Visibility == "private" && quilt.UserId != c.Session["uname"] {
+		return c.NotFound("Quilt not visible.")
+	}
+	return c.RenderJson(quilt)
+}
+
+func (c Quilt) Quilt(quilt *models.Quilt) rev.Result {
 	return c.Render()
 }
 

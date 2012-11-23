@@ -19,6 +19,7 @@ POST    /users/{username}/create-quilt          User.HandleCreateQuilt
 POST    /users/{username}/upload-fabric         User.HandleUploadFabric
 
 GET     /quilts/{id}                            Quilt.PublicQuilt
+GET     /quilts/{id}/json                       Quilt.QuiltJson
 POST    /quilts/{id}/comment                    Quilt.Comment
 
 # Ignore favicon requests

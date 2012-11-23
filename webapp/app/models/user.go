@@ -6,9 +6,9 @@ import (
 
 type User interface {
 	Name() string
-	PublicQuilts() []Quilt
-	Quilts() []Quilt
-	CreateQuilt(name, visibility string, width, height int) (Quilt, error)
+	PublicQuilts() []*Quilt
+	Quilts() []*Quilt
+	CreateQuilt(name, visibility string, width, height int) (*Quilt, error)
 }
 
 type user struct {
@@ -114,7 +114,7 @@ func (u *user) Name() string {
 	return u.name
 }
 
-func (u *user) PublicQuilts() (quilts []Quilt) {
+func (u *user) PublicQuilts() (quilts []*Quilt) {
 	rows, err := db.Query(`
 		SELECT quilt_id,name FROM quilts WHERE
 		user_id = $1 AND visibility = 'public'`, u.name)
@@ -129,13 +129,13 @@ func (u *user) PublicQuilts() (quilts []Quilt) {
 		if err = rows.Scan(&id, &name); err != nil {
 			panic(err)
 		}
-		quilts = append(quilts, &quilt{id: id, name: name})
+		quilts = append(quilts, &Quilt{Id: id, Name: name})
 	}
 
 	return quilts
 }
 
-func (u *user) Quilts() (quilts []Quilt) {
+func (u *user) Quilts() (quilts []*Quilt) {
 	rows, err := db.Query(`SELECT quilt_id,name FROM quilts WHERE user_id = $1`, u.name)
 	if err != nil {
 		panic(err)
@@ -148,12 +148,12 @@ func (u *user) Quilts() (quilts []Quilt) {
 		if err = rows.Scan(&id, &name); err != nil {
 			panic(err)
 		}
-		quilts = append(quilts, &quilt{id: id, name: name})
+		quilts = append(quilts, &Quilt{Id: id, Name: name})
 	}
 
 	return quilts
 }
 
-func (u *user) CreateQuilt(name, visibility string, width, height int) (Quilt, error) {
+func (u *user) CreateQuilt(name, visibility string, width, height int) (*Quilt, error) {
 	return createQuilt(u.name, name, visibility, width, height)
 }

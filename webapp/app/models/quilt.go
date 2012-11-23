@@ -23,26 +23,27 @@ type Poly interface {
 	Url() string
 }
 
-type Quilt interface {
-	Id() int
-	Name() string
-	UserId() string
-	Visibility() string
-	Width() int
-	Height() int
-	Polys() []Poly
-	PostComment(username, comment string) error
-	Comments() []Comment
+type ColorPoly struct {
+	Id     int
+	Coords [][]int
+	Color  string
 }
 
-type quilt struct {
-	id         int
-	name       string
-	userId     string
-	visibility string
-	width      int
-	height     int
-	polys      []Poly
+type ImagePoly struct {
+	Id     int
+	Coords [][]int
+	Url    string
+}
+
+type Quilt struct {
+	Id         int
+	Name       string
+	UserId     string
+	Visibility string
+	Width      int
+	Height     int
+	ColorPolys []*ColorPoly
+	ImagePolys []*ImagePoly
 }
 
 type poly struct {
@@ -55,29 +56,21 @@ type geoJson struct {
 	Coordinates [][][]int `json:"coordinates"`
 }
 
-func (q *quilt) Name() string       { return q.name }
-func (q *quilt) Id() int            { return q.id }
-func (q *quilt) UserId() string     { return q.userId }
-func (q *quilt) Visibility() string { return q.visibility }
-func (q *quilt) Width() int         { return q.width }
-func (q *quilt) Height() int        { return q.height }
-func (q *quilt) Polys() []Poly      { return q.polys }
-
 func (p *poly) Coords() string { return p.coords }
 func (p *poly) Color() string  { return "#" + p.color }
 func (p *poly) Url() string    { return p.url }
 
-func (q *quilt) PostComment(username, comment string) error {
+func (q *Quilt) PostComment(username, comment string) error {
 	_, err := db.Exec(
 		`INSERT INTO quilt_comments(user_id,quilt_id,comment) VALUES($1,$2,$3)`,
-		username, q.id, comment)
+		username, q.Id, comment)
 	return err
 }
 
-func (q *quilt) Comments() (comments []Comment) {
+func (q *Quilt) Comments() (comments []Comment) {
 	rows, err := db.Query(`
 		SELECT user_id,comment,created FROM quilt_comments WHERE quilt_id=$1
-		ORDER BY created DESC`, q.id)
+		ORDER BY created DESC`, q.Id)
 	if err != nil {
 		panic(err)
 	}
@@ -95,7 +88,7 @@ func (q *quilt) Comments() (comments []Comment) {
 	return
 }
 
-func createQuilt(username, name, visibility string, width, height int) (Quilt, error) {
+func createQuilt(username, name, visibility string, width, height int) (*Quilt, error) {
 	/*
 		row := db.QueryRow(`
 			INSERT INTO quilts(user_id, name, visibility, width, height)
@@ -111,73 +104,66 @@ func createQuilt(username, name, visibility string, width, height int) (Quilt, e
 	}
 	switch code {
 	case "success":
-		return &quilt{id: int(id.Int64), name: name}, nil
+		return &Quilt{Id: int(id.Int64), Name: name}, nil
 	case "dup_name":
 		return nil, ErrQuiltName
 	}
 	panic("unexpected code from quilt_create")
 }
 
-func LoadQuilt(id int) (Quilt, error) {
-	var coords geoJson
+func LoadQuilt(id int) (*Quilt, error) {
 	var coordsJson []byte
 
-	q := &quilt{id: id}
+	q := &Quilt{Id: id}
 	row := db.QueryRow(`
 		SELECT user_id,name,visibility,width,height
 		FROM quilts WHERE quilt_id=$1`, id)
-	if err := row.Scan(&q.userId, &q.name, &q.visibility, &q.width, &q.height); err != nil {
+	if err := row.Scan(&q.UserId, &q.Name, &q.Visibility, &q.Width, &q.Height); err != nil {
 		return nil, err
 	}
 
 	// load quilt polygons that have color fabrics
 	rows, err := db.Query(`
-		SELECT ST_AsGeoJSON(poly),color
+		SELECT quilt_poly_id,ST_AsGeoJSON(poly),color
 		FROM quilt_polys NATURAL JOIN fabric_colors
-		WHERE quilt_id = $1`, q.id)
+		WHERE quilt_id = $1`, q.Id)
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var p poly
-		if err := rows.Scan(&coordsJson, &p.color); err != nil {
+		var p ColorPoly
+		var coords geoJson
+		if err := rows.Scan(&p.Id, &coordsJson, &p.Color); err != nil {
 			panic(err)
 		}
 		if err := json.Unmarshal(coordsJson, &coords); err != nil {
 			panic(err)
 		}
-		coordsJson, err = json.Marshal(coords.Coordinates[0])
-		if err != nil {
-			panic(err)
-		}
-		p.coords = string(coordsJson)
-		q.polys = append(q.polys, &p)
+		p.Coords = coords.Coordinates[0]
+		q.ColorPolys = append(q.ColorPolys, &p)
 	}
 
 	// load quilt polygons that have image fabrics
 	rows, err = db.Query(`
-		SELECT ST_AsGeoJSON(poly),url
+		SELECT quilt_poly_id,ST_AsGeoJSON(poly),url
 		FROM quilt_polys NATURAL JOIN fabric_images NATURAL JOIN images
-		WHERE quilt_id = $1`, q.id)
+		WHERE quilt_id = $1`, q.Id)
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var p poly
-		if err := rows.Scan(&coordsJson, &p.url); err != nil {
+		var p ImagePoly
+		var coords geoJson
+		if err := rows.Scan(&p.Id, &coordsJson, &p.Url); err != nil {
 			panic(err)
 		}
 		if err := json.Unmarshal(coordsJson, &coords); err != nil {
 			panic(err)
 		}
-		coordsJson, err = json.Marshal(coords.Coordinates[0])
-		if err != nil {
-			panic(err)
-		}
-		p.coords = string(coordsJson)
-		q.polys = append(q.polys, &p)
+		p.Coords = coords.Coordinates[0]
+		q.ImagePolys = append(q.ImagePolys, &p)
 	}
 
 	return q, nil
