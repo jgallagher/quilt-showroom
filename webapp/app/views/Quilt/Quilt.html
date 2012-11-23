@@ -11,7 +11,50 @@
 
 		<div class="tab-content">
 			<div class="tab-pane active" id="add">
-				Todo!
+
+				<ul class="nav nav-tabs">
+					<li id="tab-rectangle" class="active"><a href="#rectangle">Rectangle</a></li>
+					<li id="tab-triangle"><a href="#triangle">Triangle</a></li>
+				</ul>
+
+				<div class="tab-content">
+					<div class="tab-pane active" id="rectangle">
+						<form action="#" class="form-inline">
+							<p>
+							<label for="width">Width</label>
+							<input id="rectangle-width", name="width" type="text" value="8"/>
+							</p>
+							<p>
+							<label for="height">Height</label>
+							<input id="rectangle-height", name="height" type="text" value="4"/>
+							</p>
+						</form>
+					</div>
+					<div class="tab-pane" id="triangle">
+						<form action="#" class="form-inline">
+							<p>
+							<label for="width">Width</label>
+							<input id="triangle-width", name="width" type="text" value="8"/>
+							</p>
+							<p>
+							<label for="height">Height</label>
+							<input id="triangle-height", name="height" type="text" value="4"/>
+							</p>
+							<p>
+							<label for="orientation">Orientation</label>
+							<select id="triangle-orientation" name="orientation">
+								<option value="se" selected>&#x25E2;</option>
+								<option value="sw">&#x25E3;</option>
+								<option value="nw">&#x25E4;</option>
+								<option value="ne">&#x25E5;</option>
+								<option value="n">&#x25B2;</option>
+								<option value="s">&#x25BC;</option>
+								<option value="e">&#x25B6;</option>
+								<option value="w">&#x25C0;</option>
+							</select>
+						</form>
+					</div>
+				</div>
 			</div>
 			<div class="tab-pane" id="delete">
 				<p>Click on shapes in your quilt to delete them.</p>
@@ -31,17 +74,40 @@
 <script src="/public/js/jsquilt2.js"></script>
 
 <script>
-	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"));
+	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"), $("#quilt-container"));
+	var w = FormWatcher(q);
+	w.watch("rectangle", {
+		width: $("#rectangle-width"),
+		height: $("#rectangle-height"),
+	});
 	$('#tab-add a').click(function(e) {
 		e.preventDefault();
 		$(this).tab('show');
 		console.log("switch to add");
+		w.reattach();
 	});
 	$('#tab-delete a').click(function(e) {
 		e.preventDefault();
 		$(this).tab('show');
 		console.log("switch to delete");
 		q.deleteOnClick();
+	});
+	$('#tab-rectangle a').click(function(e) {
+		e.preventDefault();
+		$(this).tab('show');
+		w.watch("rectangle", {
+			width: $("#rectangle-width"),
+			height: $("#rectangle-height"),
+		});
+	});
+	$('#tab-triangle a').click(function(e) {
+		e.preventDefault();
+		$(this).tab('show');
+		w.watch("triangle", {
+			width: $("#triangle-width"),
+			height: $("#triangle-height"),
+			orient: $("#triangle-orientation"),
+		});
 	});
 </script>
 
