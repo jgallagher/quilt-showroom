@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log"
 	"time"
 )
 
@@ -41,6 +42,7 @@ type Quilt struct {
 }
 
 type geoJson struct {
+	Type        string    `json:"type"`
 	Coordinates [][][]int `json:"coordinates"`
 }
 
@@ -99,7 +101,7 @@ func LoadQuilt(id int) (*Quilt, error) {
 	var coordsJson []byte
 
 	q := &Quilt{
-		Id: id,
+		Id:         id,
 		ColorPolys: make([]*ColorPoly, 0),
 		ImagePolys: make([]*ImagePoly, 0),
 	}
@@ -176,4 +178,59 @@ func DeletePoly(id int) {
 	if _, err := db.Exec(`DELETE FROM quilt_polys WHERE quilt_poly_id=$1`, id); err != nil {
 		panic(err)
 	}
+}
+
+func AddPolys(quiltid, x, y int, polys []*ColorPoly) error {
+	tx, err := db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	stmt, err := tx.Prepare(`
+		WITH res AS (
+			INSERT INTO quilt_polys(quilt_id,poly)
+			VALUES ($1, ST_Translate(ST_GeomFromGeoJson($2), $3, $4))
+			RETURNING quilt_poly_id,fabric_id,poly)
+		SELECT res.quilt_poly_id,f.color,ST_AsGeoJSON(res.poly)
+		FROM res, fabric_colors AS f
+		WHERE res.fabric_id = f.fabric_id`)
+	if err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+
+	// convert polys into geoJson values
+	for _, p := range polys {
+		var coordsJson []byte
+		g := geoJson{"Polygon", make([][][]int, 1)}
+		g.Coordinates[0] = p.Coords
+		s, err := json.Marshal(g)
+		if err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+		log.Printf("marshalled into %s", string(s))
+		rows, err := stmt.Query(quiltid, string(s), x, y)
+		if err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+		defer rows.Close()
+		if rows.Next() {
+			if err := rows.Scan(&p.Id, &p.Color, &coordsJson); err != nil {
+				tx.Rollback()
+				panic(err)
+			}
+			if err := json.Unmarshal(coordsJson, &g); err != nil {
+				tx.Rollback()
+				panic(err)
+			}
+			p.Coords = g.Coordinates[0]
+		} else {
+			tx.Rollback()
+			panic(rows.Err())
+		}
+	}
+
+	return tx.Commit()
 }

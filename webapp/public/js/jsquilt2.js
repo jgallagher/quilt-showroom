@@ -30,10 +30,10 @@ function Quilt(id, canvas, container) {
         // add the grid layer with index 0 (i.e., underneath the polys)
         canvas.addLayer({
             method: 'draw',
-            index: 0,
             fn: function(ctx) {
                 ctx.drawImage(quilt.grid, margin, margin);
             },
+            index: 0,
         });
         canvas.drawLayers();
     };
@@ -52,12 +52,14 @@ function Quilt(id, canvas, container) {
         });
     };
 
+    quilt.disableOverlay = function() {};
     quilt.buildOverlay = function(width, height, polys) {
         var buf = document.createElement('canvas');
         var ctx = buf.getContext('2d');
         var i, j;
 
         // disable other event handlers on polygon clicks
+        quilt.disableOverlay();
         canvas.setLayerGroup("polys", { click: function(layer) {} });
 
         buf.width = width;
@@ -120,9 +122,23 @@ function Quilt(id, canvas, container) {
         };
         var click = function(e) {
             console.log("got click on canvas");
+            var overlay = canvas.getLayer("overlay");
+            $.post("/quilts/"+quilt.id+"/poly-add", {
+                polyjson: JSON.stringify(polys),
+                x: overlay.x - margin,
+                y: overlay.y - margin,
+            }, function(data) {
+                var i;
+                console.log(data);
+                for (i = 0; i < data.length; i++) {
+                    quilt.addPoly(data[i]);
+                }
+                canvas.drawLayers();
+            });
         };
         canvas.on({mousemove: mousemove, click: click});
         quilt.disableOverlay = function() {
+            console.log("disabling overlay (turning off mousemove and click)");
             canvas.removeLayer("overlay");
             canvas.off({mousemove: mousemove, click: click});
             canvas.drawLayers();
@@ -142,7 +158,7 @@ function Quilt(id, canvas, container) {
             group: 'polys',
             click: function() {},
             polyid: poly.Id,
-            index: 0,
+            index: 1,
         }
         for (i = 0; i < poly.Coords.length; i++) {
             args['x'+(i+1)] = margin + poly.Coords[i][0];
