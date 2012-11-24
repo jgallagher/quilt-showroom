@@ -18,10 +18,11 @@
 	<fieldset>
 		<legend>Pictures of this Quilt</legend>
 	</fieldset>
-</form>
 
+{{$images := .quilt.Images}}
+{{if $images}}
 <ul id="quilt-images" class="thumbnails">
-	{{range .quilt.Images}}
+	{{range $images}}
 	<li class="span6">
 	<div class="thumbnail">
 		<img src="{{.Url}}"/>
@@ -30,6 +31,10 @@
 	</li>
 	{{end}}
 </ul>
+{{else}}
+<p>{{.quilt.UserId}} has not uploaded any pictures of this quilt.</p>
+{{end}}
+</form>
 
 {{template "Quilt/QuiltComments.html" .}}
 
