@@ -17,6 +17,7 @@
 				<ul class="nav nav-tabs">
 					<li id="tab-rectangle" class="active"><a href="#rectangle">Rectangle</a></li>
 					<li id="tab-triangle"><a href="#triangle">Triangle</a></li>
+					<li id="tab-addblock"><a href="#add-block">Blocks</a></li>
 				</ul>
 
 				<div class="tab-content">
@@ -54,6 +55,18 @@
 								<option value="e">&#x25B6;</option>
 								<option value="w">&#x25C0;</option>
 							</select>
+						</form>
+					</div>
+					<div class="tab-pane" id="add-block">
+						<form action="#" class="form-inline">
+							<p>
+							<label for="blockid">Block</label>
+							<select id="add-blockid" name="blockid">
+								{{range .blocks}}
+								<option value="{{.Id}}">{{.Name}} ({{.Width}} x {{.Height}})</option>
+								{{end}}
+							</select>
+							</p>
 						</form>
 					</div>
 				</div>
@@ -177,6 +190,13 @@
 			width: $("#triangle-width"),
 			height: $("#triangle-height"),
 			orient: $("#triangle-orientation"),
+		});
+	});
+	$('#tab-addblock a').click(function(e) {
+		e.preventDefault();
+		$(this).tab('show');
+		w.watch("block", {
+			blockid: $("#add-blockid"),
 		});
 	});
 </script>

@@ -23,8 +23,11 @@ GET     /quilts/{id}/json                       Quilt.QuiltJson
 POST    /quilts/{id}/comment                    Quilt.Comment
 POST    /quilts/{id}/poly-delete                Quilt.PolyDelete
 POST    /quilts/{id}/poly-add                   Quilt.PolyAdd
+POST    /quilts/{id}/poly-add-fabric            Quilt.PolyAddWithFabric
 POST    /quilts/{id}/set-fabric                 Quilt.PolySetFabric
 POST    /quilts/{id}/create-block               Quilt.CreateBlock
+
+GET     /blocks/{id}                            Block.BlockJson
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

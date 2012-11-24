@@ -99,9 +99,35 @@ func createQuilt(username, name, visibility string, width, height int) (*Quilt, 
 	panic("unexpected code from quilt_create")
 }
 
-func LoadQuilt(id int) (*Quilt, error) {
+func loadColorPoly(rows *sql.Rows) *ColorPoly {
 	var coordsJson []byte
+	var p ColorPoly
+	var coords geoJson
+	if err := rows.Scan(&p.Id, &coordsJson, &p.Color); err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(coordsJson, &coords); err != nil {
+		panic(err)
+	}
+	p.Coords = coords.Coordinates[0]
+	return &p
+}
 
+func loadImagePoly(rows *sql.Rows) *ImagePoly {
+	var coordsJson []byte
+	var p ImagePoly
+	var coords geoJson
+	if err := rows.Scan(&p.Id, &coordsJson, &p.Url); err != nil {
+		panic(err)
+	}
+	if err := json.Unmarshal(coordsJson, &coords); err != nil {
+		panic(err)
+	}
+	p.Coords = coords.Coordinates[0]
+	return &p
+}
+
+func LoadQuilt(id int) (*Quilt, error) {
 	q := &Quilt{
 		Id:         id,
 		ColorPolys: make([]*ColorPoly, 0),
@@ -124,16 +150,7 @@ func LoadQuilt(id int) (*Quilt, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var p ColorPoly
-		var coords geoJson
-		if err := rows.Scan(&p.Id, &coordsJson, &p.Color); err != nil {
-			panic(err)
-		}
-		if err := json.Unmarshal(coordsJson, &coords); err != nil {
-			panic(err)
-		}
-		p.Coords = coords.Coordinates[0]
-		q.ColorPolys = append(q.ColorPolys, &p)
+		q.ColorPolys = append(q.ColorPolys, loadColorPoly(rows))
 	}
 
 	// load quilt polygons that have image fabrics
@@ -146,16 +163,7 @@ func LoadQuilt(id int) (*Quilt, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var p ImagePoly
-		var coords geoJson
-		if err := rows.Scan(&p.Id, &coordsJson, &p.Url); err != nil {
-			panic(err)
-		}
-		if err := json.Unmarshal(coordsJson, &coords); err != nil {
-			panic(err)
-		}
-		p.Coords = coords.Coordinates[0]
-		q.ImagePolys = append(q.ImagePolys, &p)
+		q.ImagePolys = append(q.ImagePolys, loadImagePoly(rows))
 	}
 
 	return q, nil
@@ -180,6 +188,64 @@ func DeletePoly(id int) {
 	if _, err := db.Exec(`DELETE FROM quilt_polys WHERE quilt_poly_id=$1`, id); err != nil {
 		panic(err)
 	}
+}
+
+func AddPolysWithFabric(quiltid, x, y int, polys []*Poly) error {
+	tx, err := db.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	insertStmt, err := tx.Prepare(`
+		INSERT INTO quilt_polys(quilt_id, fabric_id, poly)
+		VALUES ($1, $2, ST_Translate(ST_GeomFromGeoJSON($3), $4, $5))
+		RETURNING quilt_poly_id, ST_AsGeoJSON(poly)`)
+	if err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+	fabricStmt, err := tx.Prepare(`
+		SELECT color, url
+		FROM
+			fabrics AS f
+			LEFT JOIN fabric_colors AS fc ON (f.fabric_id = fc.fabric_id)
+			LEFT JOIN fabric_images AS fi ON (f.fabric_id = fi.fabric_id)
+			LEFT JOIN images AS i         ON (fi.image_id = i.image_id)
+		WHERE f.fabric_id = $1`)
+	if err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+
+	for _, p := range polys {
+		var coordsJson []byte
+		g := geoJson{"Polygon", make([][][]int, 1)}
+		g.Coordinates[0] = p.Coords
+		s, err := json.Marshal(g)
+		if err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+
+		row := insertStmt.QueryRow(quiltid, p.FabricId, string(s), x, y)
+		if err := row.Scan(&p.Id, &coordsJson); err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+		if err := json.Unmarshal(coordsJson, &g); err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+		p.Coords = g.Coordinates[0]
+
+		row = fabricStmt.QueryRow(p.FabricId)
+		if err := row.Scan(&p.Color, &p.Url); err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+	}
+
+	return tx.Commit()
 }
 
 func AddPolys(quiltid, x, y int, polys []*ColorPoly) error {
@@ -208,14 +274,18 @@ func AddPolys(quiltid, x, y int, polys []*ColorPoly) error {
 			tx.Rollback()
 			panic(err)
 		}
+
 		log.Printf("marshalled into %s", string(s))
 		rows, err := stmt.Query(quiltid, string(s), x, y)
+		log.Printf("finished issuing query")
 		if err != nil {
+			log.Printf("query failed: %s", err)
 			tx.Rollback()
 			panic(err)
 		}
-		defer rows.Close()
+		log.Printf("checking rows.Next")
 		if rows.Next() {
+			log.Printf("scanning...")
 			if err := rows.Scan(&p.Id, &p.Color, &coordsJson); err != nil {
 				tx.Rollback()
 				panic(err)
@@ -225,12 +295,13 @@ func AddPolys(quiltid, x, y int, polys []*ColorPoly) error {
 				panic(err)
 			}
 			p.Coords = g.Coordinates[0]
-			log.Printf("set coords = %q", p.Coords)
+			log.Printf("set coords = %v", p.Coords)
 		} else {
 			log.Printf("did not get row; err = %s", rows.Err())
 			tx.Rollback()
 			panic(rows.Err())
 		}
+		rows.Close()
 	}
 
 	return tx.Commit()

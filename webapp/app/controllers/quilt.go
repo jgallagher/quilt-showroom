@@ -40,7 +40,8 @@ func (c Quilt) QuiltJson(id int) rev.Result {
 
 func (c Quilt) Quilt(quilt *models.Quilt) rev.Result {
 	color_fabrics, image_fabrics := models.LoadFabrics(quilt.UserId)
-	return c.Render(color_fabrics, image_fabrics)
+	blocks := models.LoadBlocks(quilt.UserId)
+	return c.Render(color_fabrics, image_fabrics, blocks)
 }
 
 func (c Quilt) Comment(id int, comment string) rev.Result {
@@ -78,6 +79,23 @@ func (c Quilt) PolyAdd(id, x, y int, polyjson string) rev.Result {
 	}
 	log.Printf("unmarshalled into %q", polys)
 	if err := models.AddPolys(id, x, y, polys); err != nil {
+		panic(err)
+	}
+	log.Printf("returning polys %q", polys)
+	return c.RenderJson(polys)
+}
+
+func (c Quilt) PolyAddWithFabric(id, x, y int, polyjson string) rev.Result {
+	if !models.QuiltOwner(c.Session["uname"], id) {
+		return c.NotFound("Action not allowed.")
+	}
+	log.Printf("adding polys with fabric %s at %d,%d to quilt %d", polyjson, x, y, id)
+	var polys []*models.Poly
+	if err := json.Unmarshal([]byte(polyjson), &polys); err != nil {
+		panic(err)
+	}
+	log.Printf("unmarshalled into %q", polys)
+	if err := models.AddPolysWithFabric(id, x, y, polys); err != nil {
 		panic(err)
 	}
 	log.Printf("returning polys %q", polys)

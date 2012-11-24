@@ -130,7 +130,7 @@ function Quilt(id, canvas, container) {
     };
 
     quilt.disableOverlay = function() {};
-    quilt.buildOverlay = function(width, height, polys) {
+    quilt.buildOverlay = function(endpoint, width, height, polys) {
         var buf = document.createElement('canvas');
         var ctx = buf.getContext('2d');
         var i, j;
@@ -199,7 +199,7 @@ function Quilt(id, canvas, container) {
         var click = function(e) {
             console.log("got click on canvas");
             var overlay = canvas.getLayer("overlay");
-            $.post("/quilts/"+quilt.id+"/poly-add", {
+            $.post("/quilts/"+quilt.id+"/"+endpoint, {
                 polyjson: JSON.stringify(polys),
                 x: overlay.x - margin,
                 y: overlay.y - margin,
@@ -302,14 +302,14 @@ function FormWatcher(quilt) {
                 fw.add_handler = function(e) {
                     var w = inputs.width.val() * quilt.spacing;
                     var h = inputs.height.val() * quilt.spacing;
-                    quilt.buildOverlay(w, h,
+                    quilt.buildOverlay("poly-add", w, h,
                             [{Coords: [[0,0],[w,0],[w,h],[0,h],[0,0]]}]);
                 };
                 fw.handler = fw.add_handler;
                 break;
 
             case "triangle":
-                fw.handler = function(e) {
+                fw.add_handler = function(e) {
                     var w = inputs.width.val() * quilt.spacing;
                     var h = inputs.height.val() * quilt.spacing;
                     var c;
@@ -323,7 +323,18 @@ function FormWatcher(quilt) {
                         case "w":  c = [[w,0],[0,h/2],[w,h],[w,0]]; break;
                         case "s":  c = [[0,0],[w,0],[w/2,h],[0,0]]; break;
                     }
-                    quilt.buildOverlay(w, h, [{Coords: c}]);
+                    quilt.buildOverlay("poly-add", w, h, [{Coords: c}]);
+                };
+                fw.handler = fw.add_handler;
+                break;
+
+            case "block":
+                fw.add_handler = function(e) {
+                    quilt.disableOverlay();
+                    $.get("/blocks/"+inputs.blockid.val(), function(data) {
+                        console.log(data);
+                        quilt.buildOverlay("poly-add-fabric", data.Width, data.Height, data.Polys);
+                    });
                 };
                 fw.handler = fw.add_handler;
                 break;
