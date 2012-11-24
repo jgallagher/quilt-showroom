@@ -6,13 +6,15 @@ import (
 
 type User interface {
 	Name() string
+	NumPublicQuilts() int
 	PublicQuilts() []*Quilt
 	Quilts() []*Quilt
 	CreateQuilt(name, visibility string, width, height int) (*Quilt, error)
 }
 
 type user struct {
-	name string
+	name            string
+	numPublicQuilts int
 }
 
 var (
@@ -23,6 +25,27 @@ var (
 	ErrInvalidLogin = errors.New("Invalid email address or password.")
 	ErrNoUser       = errors.New("User not found.")
 )
+
+func AllUsers() (users []User) {
+	rows, err := db.Query(`
+		SELECT user_id,COUNT(quilt_id) FROM quilts
+		GROUP BY user_id ORDER BY user_id`)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var u user
+		if err := rows.Scan(&u.name, &u.numPublicQuilts); err != nil {
+			rows.Close()
+			panic(err)
+		}
+		users = append(users, &u)
+	}
+
+	return users
+}
 
 func CreateUser(name, email, password string) error {
 	var code string
@@ -104,7 +127,7 @@ func LoadUser(name string) (User, error) {
 	defer rows.Close()
 
 	if rows.Next() {
-		return &user{name}, nil
+		return &user{name: name}, nil
 	}
 
 	return nil, ErrNoUser
@@ -112,6 +135,10 @@ func LoadUser(name string) (User, error) {
 
 func (u *user) Name() string {
 	return u.name
+}
+
+func (u *user) NumPublicQuilts() int {
+	return u.numPublicQuilts
 }
 
 func (u *user) PublicQuilts() (quilts []*Quilt) {

@@ -3,6 +3,16 @@
 
 <h1>Quilter's Showroom</h1>
 
-<div>TODO</div>
+{{if .users}}
+<ul>
+{{range .users}}
+<li> <a href="/users/{{.Name}}">
+	{{.Name}} ({{.NumPublicQuilts}} quilt{{if eq .NumPublicQuilts 1 | not}}s{{end}} on display)
+</a> </li>
+{{end}}
+</ul>
+{{else}}
+<p>No users have registered yet!</p>
+{{end}}
 
 {{template "footer.html" .}}
