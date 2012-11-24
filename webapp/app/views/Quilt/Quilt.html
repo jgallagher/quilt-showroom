@@ -60,12 +60,16 @@
 					<div class="tab-pane" id="add-block">
 						<form action="#" class="form-inline">
 							<p>
+							{{if .blocks}}
 							<label for="blockid">Block</label>
 							<select id="add-blockid" name="blockid">
 								{{range .blocks}}
 								<option value="{{.Id}}">{{.Name}} ({{.Width}} x {{.Height}})</option>
 								{{end}}
 							</select>
+							{{else}}
+							You have no blocks. Create some first.
+							{{end}}
 							</p>
 						</form>
 					</div>
@@ -195,9 +199,14 @@
 	$('#tab-addblock a').click(function(e) {
 		e.preventDefault();
 		$(this).tab('show');
-		w.watch("block", {
-			blockid: $("#add-blockid"),
-		});
+		var elt = $("#add-blockid");
+		if (elt.length > 0) {
+			w.watch("block", {
+				blockid: $("#add-blockid"),
+			});
+		} else {
+			q.disableOverlay();
+		}
 	});
 </script>
 
