@@ -39,8 +39,50 @@ function Quilt(id, canvas, container) {
         canvas.drawLayers();
     };
 
-    quilt.deleteOnClick = function() {
+    quilt.resetHandlers = function() {
+        var noop = function(layer) {};
         quilt.disableOverlay();
+        canvas.setLayerGroup("polys", {
+            click: noop,
+            mouseover: noop,
+            mouseout: noop,
+        });
+    };
+
+    quilt.blockSelectOnClick = function() {
+        quilt.blockSelected = {};
+        quilt.resetHandlers();
+        canvas.setLayerGroup("polys", {
+            click: function(layer) {
+                if (quilt.blockSelected.hasOwnProperty(layer.polyid)) {
+                    console.log("remove " + layer.name + " from selected");
+                    layer.strokeStyle = '#000';
+                    layer.strokeWidth = 1;
+                    // bring to rear
+                    var layers = canvas.getLayers();
+                    layers.splice(layer.index, 1);
+                    layer.index = 1;
+                    layers.splice(layer.index, 0, layer);
+                    delete quilt.blockSelected[layer.polyid];
+                } else {
+                    console.log("add " + layer.name + " to selected");
+                    layer.strokeStyle = '#f00';
+                    layer.strokeWidth = 2;
+                    quilt.blockSelected[layer.polyid] = 1;
+                    // bring to front
+                    var layers = canvas.getLayers();
+                    layers.splice(layer.index, 1);
+                    layer.index = layers.push(layer);
+                }
+                canvas.drawLayers();
+            },
+            mouseover: function(layer) { canvas.css('cursor', 'pointer'); },
+            mouseout: function(layer) { canvas.css('cursor', 'auto'); },
+        });
+    };
+
+    quilt.deleteOnClick = function() {
+        quilt.resetHandlers();
         canvas.setLayerGroup("polys", {
             click: function(layer) {
                 console.log("remove layer " + layer.name + "," + layer.polyid);
@@ -51,12 +93,8 @@ function Quilt(id, canvas, container) {
                     polyid: layer.polyid,
                 });
             },
-            mouseover: function(layer) {
-                canvas.css('cursor', 'pointer');
-            },
-            mouseout: function(layer) {
-                canvas.css('cursor', 'auto');
-            },
+            mouseover: function(layer) { canvas.css('cursor', 'pointer'); },
+            mouseout: function(layer) { canvas.css('cursor', 'auto'); },
         });
     };
 
@@ -86,12 +124,8 @@ function Quilt(id, canvas, container) {
         }
         canvas.setLayerGroup("polys", {
             click: func,
-            mouseover: function(layer) {
-                canvas.css('cursor', 'pointer');
-            },
-            mouseout: function(layer) {
-                canvas.css('cursor', 'auto');
-            },
+            mouseover: function(layer) { canvas.css('cursor', 'pointer'); },
+            mouseout: function(layer) { canvas.css('cursor', 'auto'); },
         });
     };
 
@@ -102,10 +136,7 @@ function Quilt(id, canvas, container) {
         var i, j;
 
         // disable other event handlers on polygon clicks
-        quilt.disableOverlay();
-        var noop = function(layer) {};
-        canvas.setLayerGroup("polys",
-                { click: noop, mouseover: noop, mouseout: noop });
+        quilt.resetHandlers();
 
         buf.width = width;
         buf.height = height;

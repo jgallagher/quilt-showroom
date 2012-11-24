@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -187,13 +189,10 @@ func AddPolys(quiltid, x, y int, polys []*ColorPoly) error {
 	}
 
 	stmt, err := tx.Prepare(`
-		WITH res AS (
-			INSERT INTO quilt_polys(quilt_id,poly)
-			VALUES ($1, ST_Translate(ST_GeomFromGeoJson($2), $3, $4))
-			RETURNING quilt_poly_id,fabric_id,poly)
-		SELECT res.quilt_poly_id,f.color,ST_AsGeoJSON(res.poly)
-		FROM res, fabric_colors AS f
-		WHERE res.fabric_id = f.fabric_id`)
+		INSERT INTO quilt_polys(quilt_id, fabric_id, poly)
+		VALUES ($1, fabric_color('ffffff'),
+			ST_Translate(ST_GeomFromGeoJson($2), $3, $4))
+		RETURNING quilt_poly_id, 'ffffff', ST_AsGeoJSON(poly)`)
 	if err != nil {
 		tx.Rollback()
 		panic(err)
@@ -226,7 +225,9 @@ func AddPolys(quiltid, x, y int, polys []*ColorPoly) error {
 				panic(err)
 			}
 			p.Coords = g.Coordinates[0]
+			log.Printf("set coords = %q", p.Coords)
 		} else {
+			log.Printf("did not get row; err = %s", rows.Err())
 			tx.Rollback()
 			panic(rows.Err())
 		}
@@ -238,6 +239,60 @@ func AddPolys(quiltid, x, y int, polys []*ColorPoly) error {
 func SetPolyFabric(polyid, fabricid int) {
 	if _, err := db.Exec(`UPDATE quilt_polys SET fabric_id=$1 WHERE quilt_poly_id=$2`,
 		fabricid, polyid); err != nil {
+		panic(err)
+	}
+}
+
+func CreateBlockFromPolys(quiltid int, name string, polyid []int) {
+	tx, err := db.Begin()
+	if err != nil {
+		panic(err)
+	}
+	defer tx.Commit()
+
+	// build up string of poly ids used for IN clause below
+	polyidStrings := make([]string, len(polyid))
+	for i, id := range polyid {
+		polyidStrings[i] = strconv.Itoa(id)
+	}
+	polyidString := strings.Join(polyidStrings, ",")
+	log.Printf("polyidString = %s", polyidString)
+
+	// compute bounding box of polys
+	row := tx.QueryRow(`
+		SELECT
+			MIN(ST_XMin(poly)), MAX(ST_XMax(poly)),
+			MIN(ST_YMin(poly)), MAX(ST_YMax(poly))
+		FROM quilt_polys WHERE quilt_poly_id IN (` + polyidString + `)`)
+	var xmin, xmax, ymin, ymax int
+	if err := row.Scan(&xmin, &xmax, &ymin, &ymax); err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+
+	log.Printf("computed bbox %d,%d  %d,%d", xmin, xmax, ymin, ymax)
+
+	// create the block
+	row = tx.QueryRow(`
+		INSERT INTO blocks(user_id,name,width,height)
+		VALUES (
+			(SELECT user_id FROM quilts WHERE quilt_id=$1),
+			$2, $3, $4)
+		RETURNING block_id`, quiltid, name, xmax-xmin, ymax-ymin)
+	var blockid int
+	if err := row.Scan(&blockid); err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+
+	// insert all the translated quilt polys into the block
+	if _, err := tx.Exec(`
+		WITH src AS (
+			SELECT fabric_id,poly FROM quilt_polys
+			WHERE quilt_poly_id IN (`+polyidString+`))
+		INSERT INTO block_polys(block_id,fabric_id,poly)
+		(SELECT $1, fabric_id, ST_Translate(poly, $2, $3) FROM src)`,
+		blockid, -xmin, -ymin); err != nil {
 		panic(err)
 	}
 }

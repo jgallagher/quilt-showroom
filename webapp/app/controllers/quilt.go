@@ -5,6 +5,7 @@ import (
 	"github.com/robfig/revel"
 	"github.com/jgallagher/dbproject/webapp/app/models"
 	"log"
+	"strconv"
 )
 
 type Quilt struct {
@@ -79,6 +80,7 @@ func (c Quilt) PolyAdd(id, x, y int, polyjson string) rev.Result {
 	if err := models.AddPolys(id, x, y, polys); err != nil {
 		panic(err)
 	}
+	log.Printf("returning polys %q", polys)
 	return c.RenderJson(polys)
 }
 
@@ -89,4 +91,18 @@ func (c Quilt) PolySetFabric(id, polyid, fabricid int) rev.Result {
 	log.Printf("set poly %d fabric to %d", polyid, fabricid)
 	models.SetPolyFabric(polyid, fabricid)
 	return c.RenderJson("ok")
+}
+
+func (c Quilt) CreateBlock(id int, name string) rev.Result {
+	var polyid []int
+	for _, p := range c.Params.Values["polyid"] {
+		val, err := strconv.Atoi(p)
+		if err != nil {
+			panic(err)
+		}
+		polyid = append(polyid, val)
+	}
+	log.Printf("create block %s from quilt %d with poly ids %s", name, id, polyid)
+	models.CreateBlockFromPolys(id, name, polyid)
+	return c.Redirect("/quilts/%d", id)
 }

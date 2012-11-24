@@ -1,7 +1,7 @@
 -- Main table for blocks.
 CREATE TABLE blocks (
     block_id    SERIAL  PRIMARY KEY,
-    user_id     INTEGER NOT NULL REFERENCES users(user_id),
+    user_id     VARCHAR NOT NULL REFERENCES users(user_id),
     name        VARCHAR NOT NULL,
     width       INTEGER NOT NULL CHECK (width > 0),
     height      INTEGER NOT NULL CHECK (height > 0)

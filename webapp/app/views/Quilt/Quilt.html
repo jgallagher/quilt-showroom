@@ -7,6 +7,7 @@
 		<ul class="nav nav-tabs">
 			<li id="tab-add" class="active"><a href="#add">Add</a></li>
 			<li id="tab-fabric"><a href="#fabric">Set Fabrics</a></li>
+			<li id="tab-blocks"><a href="#blocks">Create Blocks</a></li>
 			<li id="tab-delete"><a href="#delete">Delete</a></li>
 		</ul>
 
@@ -73,6 +74,14 @@
 					{{end}}
 				</ul>
 			</div>
+			<div class="tab-pane" id="blocks">
+				<p>Click on shapes in your quilt to select them, then type in a name
+				for your block and create it below.</p>
+				<form class="form-inline" action="/quilts/{{.quilt.Id}}/create-block" method="POST" id="block-form">
+					<input type="text" name="name" value="Block Name"/>
+					<button type="submit" class="btn">Create Block</button>
+				</form>
+			</div>
 			<div class="tab-pane" id="delete">
 				<p>Click on shapes in your quilt to delete them.</p>
 			</div>
@@ -93,6 +102,19 @@
 <script>
 	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"), $("#quilt-container"));
 	var w = FormWatcher(q);
+	var blockform = $("#block-form");
+	blockform.on('submit', function() {
+		var dosubmit = false;
+		$.each(q.blockSelected, function(key, val) {
+			$('<input>').attr({
+				type: "hidden",
+				name: "polyid",
+				value: key,
+			}).appendTo(blockform);
+			dosubmit = true;
+		});
+		return dosubmit;
+	});
 	$('.color-fabric').css('cursor', 'pointer');
 	$('.image-fabric').css('cursor', 'pointer');
 	$('.color-fabric').on('click', function(e) {
@@ -127,6 +149,12 @@
 		$(this).tab('show');
 		console.log("switch to fabric");
 		w.watch("fabric", {});
+	});
+	$('#tab-blocks a').click(function(e) {
+		e.preventDefault();
+		$(this).tab('show');
+		console.log("switch to block select");
+		q.blockSelectOnClick();
 	});
 	$('#tab-delete a').click(function(e) {
 		e.preventDefault();
