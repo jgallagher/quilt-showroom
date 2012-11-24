@@ -52,6 +52,33 @@ function Quilt(id, canvas, container) {
         });
     };
 
+    quilt.fabricOnClick = function(fabric) {
+        var func = function(layer) {};
+        quilt.disableOverlay();
+        if (fabric !== null && fabric.color !== undefined) {
+            func = function(layer) {
+                console.log("set fabric on " + layer.polyid + " to " + fabric);
+                layer.fillStyle = fabric.color;
+                canvas.drawLayer(layer);
+                $.post("/quilts/"+quilt.id+"/set-fabric", {
+                    polyid: layer.polyid,
+                    fabricid: fabric.id,
+                });
+            };
+        } else if (fabric !== null && fabric.img !== undefined) {
+            var pattern = ctx.createPattern(fabric.img, 'repeat');
+            func = function(layer) {
+                layer.fillStyle = pattern;
+                canvas.drawLayer(layer);
+                $.post("/quilts/"+quilt.id+"/set-fabric", {
+                    polyid: layer.polyid,
+                    fabricid: fabric.id,
+                });
+            };
+        }
+        canvas.setLayerGroup("polys", { click: func });
+    };
+
     quilt.disableOverlay = function() {};
     quilt.buildOverlay = function(width, height, polys) {
         var buf = document.createElement('canvas');
@@ -214,6 +241,7 @@ function Quilt(id, canvas, container) {
 
 function FormWatcher(quilt) {
     var fw = {};
+    fw.fabric = null;
 
     fw.watch = function(type, inputs) {
         switch (type) {
@@ -242,6 +270,13 @@ function FormWatcher(quilt) {
                         case "s":  c = [[0,0],[w,0],[w/2,h],[0,0]]; break;
                     }
                     quilt.buildOverlay(w, h, [{Coords: c}]);
+                };
+                break;
+
+            case "fabric":
+                fw.handler = function(e) {
+                    console.log("handle fabric set: " + fw.fabric);
+                    quilt.fabricOnClick(fw.fabric);
                 };
                 break;
         }

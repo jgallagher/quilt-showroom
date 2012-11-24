@@ -6,6 +6,7 @@
 	<div class="span4">
 		<ul class="nav nav-tabs">
 			<li id="tab-add" class="active"><a href="#add">Add</a></li>
+			<li id="tab-fabric"><a href="#fabric">Set Fabrics</a></li>
 			<li id="tab-delete"><a href="#delete">Delete</a></li>
 		</ul>
 
@@ -56,6 +57,22 @@
 					</div>
 				</div>
 			</div>
+			<div class="tab-pane" id="fabric">
+				<p>Select a fabric, and click on shapes to set them to that fabric.</p>
+
+				<ul class="thumbnails">
+					{{range .color_fabrics}}
+					<li class="span1 thumbnail color-fabric" data-fabricid="{{.Id}}" style="background: #{{.Color}}"></li>
+					{{end}}
+					{{range .image_fabrics}}
+					<li class="span2">
+					<div class="thumbnail">
+						<img class="image-fabric" data-fabricid="{{.Id}}" src="{{.Url}}" alt="{{.Name}}"/>
+					</div>
+					</li>
+					{{end}}
+				</ul>
+			</div>
 			<div class="tab-pane" id="delete">
 				<p>Click on shapes in your quilt to delete them.</p>
 			</div>
@@ -76,6 +93,23 @@
 <script>
 	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"), $("#quilt-container"));
 	var w = FormWatcher(q);
+	$('.color-fabric').on('click', function(e) {
+		console.log("click on " + this + "," + $(this).data('fabricid'));
+		w.fabric = {
+			id: $(this).data('fabricid'),
+			color: $(this).css('background-color'),
+		};
+		w.reattach();
+	});
+	$('.image-fabric').on('click', function(e) {
+		console.log("click on " + $(this).data('fabricid'));
+		w.fabric = {
+			id: $(this).data('fabricid'),
+			img: this,
+		};
+		w.reattach();
+		console.log("set fabric to " + w.fabric);
+	});
 	w.watch("rectangle", {
 		width: $("#rectangle-width"),
 		height: $("#rectangle-height"),
@@ -85,6 +119,13 @@
 		$(this).tab('show');
 		console.log("switch to add");
 		w.reattach();
+	});
+	$('#tab-fabric a').click(function(e) {
+		e.preventDefault();
+		$(this).tab('show');
+		console.log("switch to fabric");
+		w.watch("fabric", {
+		});
 	});
 	$('#tab-delete a').click(function(e) {
 		e.preventDefault();

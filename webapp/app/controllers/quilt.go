@@ -38,7 +38,8 @@ func (c Quilt) QuiltJson(id int) rev.Result {
 }
 
 func (c Quilt) Quilt(quilt *models.Quilt) rev.Result {
-	return c.Render()
+	color_fabrics, image_fabrics := models.LoadFabrics(quilt.UserId)
+	return c.Render(color_fabrics, image_fabrics)
 }
 
 func (c Quilt) Comment(id int, comment string) rev.Result {
@@ -79,4 +80,13 @@ func (c Quilt) PolyAdd(id, x, y int, polyjson string) rev.Result {
 		panic(err)
 	}
 	return c.RenderJson(polys)
+}
+
+func (c Quilt) PolySetFabric(id, polyid, fabricid int) rev.Result {
+	if !models.QuiltOwner(c.Session["uname"], id) {
+		return c.NotFound("Action not allowed.")
+	}
+	log.Printf("set poly %d fabric to %d", polyid, fabricid)
+	models.SetPolyFabric(polyid, fabricid)
+	return c.RenderJson("ok")
 }

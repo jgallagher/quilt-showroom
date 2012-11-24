@@ -234,3 +234,10 @@ func AddPolys(quiltid, x, y int, polys []*ColorPoly) error {
 
 	return tx.Commit()
 }
+
+func SetPolyFabric(polyid, fabricid int) {
+	if _, err := db.Exec(`UPDATE quilt_polys SET fabric_id=$1 WHERE quilt_poly_id=$2`,
+		fabricid, polyid); err != nil {
+		panic(err)
+	}
+}
