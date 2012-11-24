@@ -58,15 +58,6 @@ func (c User) AddColorFabric(username, color string) rev.Result {
 	return c.Redirect("/users/%s/fabrics", username)
 }
 
-// User's blocks page.
-func (c User) Blocks(username string) rev.Result {
-	if invalid := c.checkUser(username); invalid != nil {
-		return invalid
-	}
-	nav_blocks := true
-	return c.Render(nav_blocks)
-}
-
 // Present form to create a new quilt.
 func (c User) CreateQuilt(username string) rev.Result {
 	if invalid := c.checkUser(username); invalid != nil {
