@@ -17,6 +17,15 @@ function Quilt(id, canvas, container) {
         canvas[0].height = quilt.height + 2*margin;
         quilt.grid = quilt.buildGrid();
 
+        // add the grid layer first (so it's on the bottom)
+        canvas.addLayer({
+            method: 'draw',
+            fn: function(ctx) {
+                ctx.drawImage(quilt.grid, margin, margin);
+            },
+            index: 0,
+        });
+
         for (i = 0; i < data.ColorPolys.length; i++) {
             quilt.addPoly(data.ColorPolys[i]);
         }
@@ -27,14 +36,6 @@ function Quilt(id, canvas, container) {
         }
         canvas.setLayerGroup("polys", { click: function(layer) { }, });
 
-        // add the grid layer with index 0 (i.e., underneath the polys)
-        canvas.addLayer({
-            method: 'draw',
-            fn: function(ctx) {
-                ctx.drawImage(quilt.grid, margin, margin);
-            },
-            index: 0,
-        });
         canvas.drawLayers();
     };
 
@@ -44,10 +45,17 @@ function Quilt(id, canvas, container) {
             click: function(layer) {
                 console.log("remove layer " + layer.name + "," + layer.polyid);
                 canvas.removeLayer(layer.name);
+                canvas.css('cursor', 'auto');
                 canvas.drawLayers();
                 $.post("/quilts/"+quilt.id+"/poly-delete", {
                     polyid: layer.polyid,
                 });
+            },
+            mouseover: function(layer) {
+                canvas.css('cursor', 'pointer');
+            },
+            mouseout: function(layer) {
+                canvas.css('cursor', 'auto');
             },
         });
     };
@@ -76,7 +84,15 @@ function Quilt(id, canvas, container) {
                 });
             };
         }
-        canvas.setLayerGroup("polys", { click: func });
+        canvas.setLayerGroup("polys", {
+            click: func,
+            mouseover: function(layer) {
+                canvas.css('cursor', 'pointer');
+            },
+            mouseout: function(layer) {
+                canvas.css('cursor', 'auto');
+            },
+        });
     };
 
     quilt.disableOverlay = function() {};
@@ -87,7 +103,9 @@ function Quilt(id, canvas, container) {
 
         // disable other event handlers on polygon clicks
         quilt.disableOverlay();
-        canvas.setLayerGroup("polys", { click: function(layer) {} });
+        var noop = function(layer) {};
+        canvas.setLayerGroup("polys",
+                { click: noop, mouseover: noop, mouseout: noop });
 
         buf.width = width;
         buf.height = height;
@@ -184,6 +202,8 @@ function Quilt(id, canvas, container) {
             name: name,
             group: 'polys',
             click: function() {},
+            mouseover: function() {},
+            mouseout: function() {},
             polyid: poly.Id,
             index: 1,
         }
@@ -242,16 +262,19 @@ function Quilt(id, canvas, container) {
 function FormWatcher(quilt) {
     var fw = {};
     fw.fabric = null;
+    fw.add_handler = function() {};
+    fw.fabric_handler = function() {};
 
     fw.watch = function(type, inputs) {
         switch (type) {
             case "rectangle":
-                fw.handler = function(e) {
+                fw.add_handler = function(e) {
                     var w = inputs.width.val() * quilt.spacing;
                     var h = inputs.height.val() * quilt.spacing;
                     quilt.buildOverlay(w, h,
                             [{Coords: [[0,0],[w,0],[w,h],[0,h],[0,0]]}]);
                 };
+                fw.handler = fw.add_handler;
                 break;
 
             case "triangle":
@@ -271,13 +294,15 @@ function FormWatcher(quilt) {
                     }
                     quilt.buildOverlay(w, h, [{Coords: c}]);
                 };
+                fw.handler = fw.add_handler;
                 break;
 
             case "fabric":
-                fw.handler = function(e) {
+                fw.fabric_handler = function(e) {
                     console.log("handle fabric set: " + fw.fabric);
                     quilt.fabricOnClick(fw.fabric);
                 };
+                fw.handler = fw.fabric_handler;
                 break;
         }
         fw.handler(null);
@@ -286,7 +311,8 @@ function FormWatcher(quilt) {
         });
     };
 
-    fw.reattach = function() {
+    fw.reattach = function(handler) {
+        fw.handler = handler;
         fw.handler(null);
     };
 

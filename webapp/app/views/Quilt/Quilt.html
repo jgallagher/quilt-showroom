@@ -93,13 +93,15 @@
 <script>
 	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"), $("#quilt-container"));
 	var w = FormWatcher(q);
+	$('.color-fabric').css('cursor', 'pointer');
+	$('.image-fabric').css('cursor', 'pointer');
 	$('.color-fabric').on('click', function(e) {
 		console.log("click on " + this + "," + $(this).data('fabricid'));
 		w.fabric = {
 			id: $(this).data('fabricid'),
 			color: $(this).css('background-color'),
 		};
-		w.reattach();
+		w.reattach(w.fabric_handler);
 	});
 	$('.image-fabric').on('click', function(e) {
 		console.log("click on " + $(this).data('fabricid'));
@@ -107,7 +109,7 @@
 			id: $(this).data('fabricid'),
 			img: this,
 		};
-		w.reattach();
+		w.reattach(w.fabric_handler);
 		console.log("set fabric to " + w.fabric);
 	});
 	w.watch("rectangle", {
@@ -118,14 +120,13 @@
 		e.preventDefault();
 		$(this).tab('show');
 		console.log("switch to add");
-		w.reattach();
+		w.reattach(w.add_handler);
 	});
 	$('#tab-fabric a').click(function(e) {
 		e.preventDefault();
 		$(this).tab('show');
 		console.log("switch to fabric");
-		w.watch("fabric", {
-		});
+		w.watch("fabric", {});
 	});
 	$('#tab-delete a').click(function(e) {
 		e.preventDefault();
