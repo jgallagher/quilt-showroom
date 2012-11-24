@@ -111,6 +111,15 @@ func (c Quilt) PolySetFabric(id, polyid, fabricid int) rev.Result {
 	return c.RenderJson("ok")
 }
 
+func (c Quilt) UploadImage(id int, comment, url string) rev.Result {
+	if !models.QuiltOwner(c.Session["uname"], id) {
+		return c.NotFound("Action not allowed.")
+	}
+	log.Printf("attach image (%s,%s) to quilt %d", comment, url, id)
+	models.AddQuiltImage(id, comment, url)
+	return c.RenderJson("ok")
+}
+
 func (c Quilt) CreateBlock(id int, name string) rev.Result {
 	var polyid []int
 	for _, p := range c.Params.Values["polyid"] {

@@ -20,6 +20,7 @@ POST    /users/{username}/upload-fabric         User.HandleUploadFabric
 GET     /quilts/{id}                            Quilt.PublicQuilt
 GET     /quilts/{id}/json                       Quilt.QuiltJson
 POST    /quilts/{id}/comment                    Quilt.Comment
+POST    /quilts/{id}/upload-image               Quilt.UploadImage
 POST    /quilts/{id}/poly-delete                Quilt.PolyDelete
 POST    /quilts/{id}/poly-add                   Quilt.PolyAdd
 POST    /quilts/{id}/poly-add-fabric            Quilt.PolyAddWithFabric

@@ -43,6 +43,11 @@ type Quilt struct {
 	ImagePolys []*ImagePoly
 }
 
+type Image struct {
+	Comment string
+	Url     string
+}
+
 type geoJson struct {
 	Type        string    `json:"type"`
 	Coordinates [][][]int `json:"coordinates"`
@@ -53,6 +58,27 @@ func (q *Quilt) PostComment(username, comment string) error {
 		`INSERT INTO quilt_comments(user_id,quilt_id,comment) VALUES($1,$2,$3)`,
 		username, q.Id, comment)
 	return err
+}
+
+func (q *Quilt) Images() (images []Image) {
+	rows, err := db.Query(`
+		SELECT comment,url
+		FROM
+			quilts NATURAL JOIN quilt_images NATURAL JOIN images
+		WHERE
+			quilt_id = $1`, q.Id)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var i Image
+		if err := rows.Scan(&i.Comment, &i.Url); err != nil {
+			panic(err)
+		}
+		images = append(images, i)
+	}
+	return
 }
 
 func (q *Quilt) Comments() (comments []Comment) {
@@ -364,6 +390,22 @@ func CreateBlockFromPolys(quiltid int, name string, polyid []int) {
 		INSERT INTO block_polys(block_id,fabric_id,poly)
 		(SELECT $1, fabric_id, ST_Translate(poly, $2, $3) FROM src)`,
 		blockid, -xmin, -ymin); err != nil {
+		panic(err)
+	}
+}
+
+func AddQuiltImage(quiltid int, comment, url string) {
+	if _, err := db.Exec(`
+		WITH u AS (
+			SELECT user_id FROM quilts WHERE quilt_id=$1
+		), i AS (
+			INSERT INTO images(user_id, url) VALUES (
+				(SELECT user_id FROM u), $2)
+			RETURNING image_id
+		)
+		INSERT INTO quilt_images(quilt_id, image_id, comment)
+		VALUES ($1, (SELECT image_id FROM i), $3)
+		`, quiltid, url, comment); err != nil {
 		panic(err)
 	}
 }

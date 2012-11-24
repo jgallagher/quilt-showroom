@@ -13,6 +13,24 @@
 <script>
 	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"));
 </script>
+
+<form class="form-inline">
+	<fieldset>
+		<legend>Pictures of this Quilt</legend>
+	</fieldset>
+</form>
+
+<ul id="quilt-images" class="thumbnails">
+	{{range .quilt.Images}}
+	<li class="span6">
+	<div class="thumbnail">
+		<img src="{{.Url}}"/>
+		<p>{{.Comment}}</p>
+	</div>
+	</li>
+	{{end}}
+</ul>
+
 {{template "Quilt/QuiltComments.html" .}}
 
 {{template "footer.html" .}}

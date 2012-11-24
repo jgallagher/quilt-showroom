@@ -210,6 +210,38 @@
 	});
 </script>
 
+<form class="form-inline">
+	<fieldset>
+		<legend>Pictures of this Quilt</legend>
+		<label for="comment">Upload New Picture</label>
+		<input id="piccomment" width="48" type="text" name="piccomment" placeholder="Comment on the picture"/>
+		<button id="start_web_demo" type="button" class="btn">Upload Picture</button>
+	</fieldset>
+</form>
+
+<img id="web_demo_preview"/>
+<div id="pane_ancestor">
+<div id="web_demo_pane"></div>
+</div>
+
+<ul id="quilt-images" class="thumbnails">
+	{{range .quilt.Images}}
+	<li class="span6">
+	<div class="thumbnail">
+		<img src="{{.Url}}"/>
+		<p>{{.Comment}}</p>
+	</div>
+	</li>
+	{{end}}
+</ul>
+
 {{template "Quilt/QuiltComments.html" .}}
+
+<script src='http://feather.aviary.com/js/feather.js'></script>
+<script src='//api.filepicker.io/v1/filepicker.js'></script>
+<script src="/public/js/upload-quilt-image.js"></script>
+<script>
+	initFeather({{.quilt.Id}});
+</script>
 
 {{template "footer.html" .}}
