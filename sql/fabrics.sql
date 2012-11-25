@@ -21,7 +21,7 @@ CREATE TABLE fabric_colors (
 -- Mapping of users to fabrics they've added to their palette.
 CREATE TABLE user_fabrics (
     user_id     VARCHAR REFERENCES users(user_id),
-    fabric_id   INTEGER REFERENCES fabrics(fabric_id),
+    fabric_id   INTEGER REFERENCES fabrics(fabric_id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, fabric_id)
 );
 

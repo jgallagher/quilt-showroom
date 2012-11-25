@@ -60,7 +60,7 @@ CREATE INDEX ON quilt_comments (quilt_id);
 -- Table for quilt polygons.
 CREATE TABLE quilt_polys (
     quilt_poly_id SERIAL  PRIMARY KEY,
-    quilt_id      INTEGER NOT NULL REFERENCES quilts(quilt_id),
+    quilt_id      INTEGER NOT NULL REFERENCES quilts(quilt_id) ON DELETE CASCADE,
     fabric_id     INTEGER NOT NULL REFERENCES fabrics(fabric_id)
                       DEFAULT fabric_color('ffffff'),
     poly          geometry(POLYGON) NOT NULL

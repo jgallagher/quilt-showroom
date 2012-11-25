@@ -16,7 +16,7 @@ CREATE TABLE quilt_images (
 
 -- Fabrics made out of images.
 CREATE TABLE fabric_images (
-    fabric_id   INTEGER PRIMARY KEY REFERENCES fabrics(fabric_id),
+    fabric_id   INTEGER PRIMARY KEY REFERENCES fabrics(fabric_id) ON DELETE CASCADE,
     image_id    INTEGER NOT NULL    REFERENCES images(image_id),
     name        VARCHAR DEFAULT NULL,
     UNIQUE (image_id)

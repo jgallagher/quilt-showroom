@@ -10,7 +10,7 @@ CREATE TABLE blocks (
 -- Table for block polygons.
 CREATE TABLE block_polys (
     block_poly_id   SERIAL  PRIMARY KEY,
-    block_id        INTEGER NOT NULL REFERENCES blocks(block_id),
+    block_id        INTEGER NOT NULL REFERENCES blocks(block_id) ON DELETE CASCADE,
     fabric_id       INTEGER NOT NULL REFERENCES fabrics(fabric_id)
                         DEFAULT fabric_color('ffffff'),
     poly            geometry(POLYGON) NOT NULL
