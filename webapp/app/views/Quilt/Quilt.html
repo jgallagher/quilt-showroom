@@ -14,6 +14,25 @@
 		<div class="tab-content">
 			<div class="tab-pane active" id="add">
 
+				<form class="form-inline" method="#">
+					<label for="quilt-spacing">Quilt Grid Spacing</label>
+					<select id="quilt-spacing" name="quilt-spacning">
+						<option value="8">1/2 inch</option>
+						<option value="16" selected>1 inch</option>
+						<option value="32">2 inches</option>
+						<option value="48">3 inches</option>
+						<option value="64">4 inches</option>
+						<option value="80">5 inches</option>
+						<option value="96">6 inches</option>
+						<option value="112">7 inches</option>
+						<option value="128">8 inches</option>
+						<option value="144">9 inches</option>
+						<option value="160">10 inches</option>
+						<option value="176">11 inches</option>
+						<option value="192">12 inches</option>
+					</select>
+				</form>
+
 				<ul class="nav nav-tabs">
 					<li id="tab-rectangle" class="active"><a href="#rectangle">Rectangle</a></li>
 					<li id="tab-triangle"><a href="#triangle">Triangle</a></li>
@@ -117,7 +136,8 @@
 <script src="/public/js/jsquilt2.js"></script>
 
 <script>
-	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"), $("#quilt-container"));
+	var q = Quilt({{.quilt.Id}}, $("#quilt-canvas"), $("#quilt-container"),
+		$("#quilt-spacing"));
 	var w = FormWatcher(q);
 	var blockform = $("#block-form");
 	blockform.on('submit', function() {

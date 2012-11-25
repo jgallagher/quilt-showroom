@@ -1,10 +1,19 @@
-function Quilt(id, canvas, container) {
+function Quilt(id, canvas, container, spacinginput) {
     var quilt = {};
     var margin = 32;
     var ctx = canvas[0].getContext('2d');
 
-    quilt.spacing = 16;
+    quilt.dpi = 16;
+    quilt.spacing = quilt.dpi;
     quilt.shapes = {};
+
+    if (spacinginput !== undefined) {
+        spacinginput.on('change', function() {
+            quilt.spacing = parseInt(spacinginput.val());
+            quilt.buildGrid();
+            canvas.drawLayers();
+        });
+    }
 
     quilt.init = function(data) {
         var i;
@@ -15,7 +24,7 @@ function Quilt(id, canvas, container) {
         quilt.height = data.Height;
         canvas[0].width = quilt.width + 2*margin;
         canvas[0].height = quilt.height + 2*margin;
-        quilt.grid = quilt.buildGrid();
+        quilt.buildGrid();
 
         // add the grid layer first (so it's on the bottom)
         canvas.addLayer({
@@ -283,7 +292,7 @@ function Quilt(id, canvas, container) {
             }
         }
         $.jCanvas();
-        return buf;
+        quilt.grid = buf;
     };
 
     $.get("/quilts/"+id+"/json", quilt.init);
@@ -300,8 +309,8 @@ function FormWatcher(quilt) {
         switch (type) {
             case "rectangle":
                 fw.add_handler = function(e) {
-                    var w = inputs.width.val() * quilt.spacing;
-                    var h = inputs.height.val() * quilt.spacing;
+                    var w = inputs.width.val() * quilt.dpi;
+                    var h = inputs.height.val() * quilt.dpi;
                     quilt.buildOverlay("poly-add", w, h,
                             [{Coords: [[0,0],[w,0],[w,h],[0,h],[0,0]]}]);
                 };
@@ -310,8 +319,8 @@ function FormWatcher(quilt) {
 
             case "triangle":
                 fw.add_handler = function(e) {
-                    var w = inputs.width.val() * quilt.spacing;
-                    var h = inputs.height.val() * quilt.spacing;
+                    var w = inputs.width.val() * quilt.dpi;
+                    var h = inputs.height.val() * quilt.dpi;
                     var c;
                     switch (inputs.orient.val()) {
                         case "nw": c = [[0,0],[w,0],[0,h],[0,0]];   break;
