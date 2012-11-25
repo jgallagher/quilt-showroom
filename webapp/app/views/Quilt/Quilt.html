@@ -97,15 +97,13 @@
 			<div class="tab-pane" id="fabric">
 				<p>Select a fabric, and click on shapes to set them to that fabric.</p>
 
-				<ul class="thumbnails">
+				<ul class="thumbnails fabric-thumbnails">
 					{{range .color_fabrics}}
-					<li class="span1 thumbnail color-fabric" data-fabricid="{{.Id}}" style="background: #{{.Color}}"></li>
+					<li class="span2 thumbnail color-fabric" data-fabricid="{{.Id}}" style="background: #{{.Color}}"></li>
 					{{end}}
 					{{range .image_fabrics}}
-					<li class="span2">
-					<div class="thumbnail">
+					<li class="span2 thumbnail">
 						<img class="image-fabric" data-fabricid="{{.Id}}" src="{{.Url}}" alt="{{.Name}}"/>
-					</div>
 					</li>
 					{{end}}
 				</ul>
@@ -184,6 +182,11 @@
 	$('#tab-fabric a').click(function(e) {
 		e.preventDefault();
 		$(this).tab('show');
+		var maxHeight = 0;
+		$('.fabric-thumbnails li').each(function() {
+			maxHeight = Math.max(maxHeight, $(this).height());
+		}).height(maxHeight);
+		console.log(maxHeight);
 		console.log("switch to fabric");
 		w.watch("fabric", {});
 	});
